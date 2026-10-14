@@ -172,6 +172,9 @@ tr.done .check{background:var(--moss);border-color:var(--moss)}
 .todaycard.dark .muted{color:#d0d0d0}
 .todaycard.dark .progress{background:#ffffff30;margin:14px 0 4px}
 .todaycard .meta{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.chipinfo.ok{background:var(--moss)}
+.chipinfo.warn{background:var(--yolk)}
+code{font-size:.92em;background:var(--cloud);padding:1px 5px;border-radius:6px}
 .chipinfo{display:inline-flex;align-items:center;background:var(--cloud);border-radius:999px;padding:5px 12px;font-size:13px;font-weight:600;white-space:nowrap}
 .btn.cta{width:100%;min-height:58px;margin-top:16px;font-size:18px;font-weight:800;background:var(--coal);color:#fff;letter-spacing:-.01em}
 .btn.cta:hover{background:#262626}
@@ -344,6 +347,7 @@ function save() {
   catch (e) { if (!cloud) toast('⚠ Sauvegarde impossible'); }
   allCache = null;
   scheduleFlush();
+  ghMarkPending();
 }
 
 /* ---------- Synchro en ligne (version publiée sur claude.ai) ----------
@@ -377,9 +381,10 @@ async function flush() {
 function setSync(s) {
   const el = $('#sync'); if (!el) return;
   el.hidden = false;
-  el.textContent = s === 'ok' ? '☁ Synchro' : '⚠ Hors ligne';
-  el.title = s === 'ok' ? 'Tes données sont enregistrées en ligne : mêmes séances sur le PC et le téléphone.' : 'La synchro a échoué. Tes données restent sur cet appareil et repartiront à la prochaine modification.';
-  el.classList.toggle('bad', s !== 'ok');
+  const ok = s === 'ok' || s === 'gh';
+  el.textContent = s === 'gh' ? '✓ Sauvegardé sur GitHub' : s === 'ok' ? '☁ Synchro' : '⚠ Pas sauvegardé en ligne';
+  el.title = ok ? 'Tes données sont aussi enregistrées en ligne.' : "L'envoi a échoué. Tes données restent dans cet appareil et repartiront plus tard.";
+  el.classList.toggle('bad', !ok);
 }
 let pendingRender = false;
 function rerender() {
@@ -443,6 +448,143 @@ async function cloudInit() {
     try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
     rerender();
   }, () => setSync('err'));
+}
+
+/* ---------- Sauvegarde GitHub (dépôt privé, clé personnelle) ----------
+   Les données (routines, séances, programme) sont envoyées dans un fichier muscu.json
+   d'un dépôt PRIVÉ. Seule une clé « fine-grained » limitée à ce dépôt peut le lire ou l'écrire.
+   La clé reste dans ce téléphone (stockage du navigateur), jamais dans le code ni dans l'export. */
+const GH_KEY = 'muscu.github';
+const GH_DEFAULT_REPO = 'Simon256px/muscu-donnees', GH_FILE = 'muscu.json';
+function ghConf() { try { return JSON.parse(localStorage.getItem(GH_KEY)) || {}; } catch (e) { return {}; } }
+function ghSet(patch) { const c = {...ghConf(), ...patch}; try { localStorage.setItem(GH_KEY, JSON.stringify(c)); } catch (e) {} return c; }
+let ghBusy = false, ghMsg = '';
+async function ghApi(method, path, body) {
+  const c = ghConf();
+  const r = await fetch('https://api.github.com/repos/' + c.repo + path, {
+    method, cache: 'no-store',
+    headers: {'Authorization': 'Bearer ' + c.token, 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28',
+      ...(body ? {'Content-Type': 'application/json'} : {})},
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = r.status === 204 ? null : await r.json().catch(() => null);
+  return {status: r.status, data};
+}
+// texte ↔ base64 en UTF-8 (accents compris)
+function toB64(text) { const b = new TextEncoder().encode(text); let s = ''; for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode(...b.subarray(i, i + 0x8000)); return btoa(s); }
+function fromB64(b64) { const s = atob(b64.replace(/\s/g, '')); return new TextDecoder().decode(Uint8Array.from(s, ch => ch.charCodeAt(0))); }
+function ghError(status) {
+  if (status === 401) return 'Clé refusée : elle est fausse ou a expiré. Crée-en une nouvelle sur GitHub.';
+  if (status === 403 || status === 404) return 'La clé n\'a pas accès au dépôt ' + ghConf().repo + ' (vérifie « Contents : Read and write »).';
+  if (status === 0) return 'Pas d\'internet : l\'envoi se fera plus tard.';
+  return 'GitHub a répondu une erreur (' + status + '). Réessaie plus tard.';
+}
+// vérifie la clé en lisant le dépôt
+async function ghCheck() {
+  try { const r = await ghApi('GET', ''); return r.status === 200 ? '' : ghError(r.status); }
+  catch (e) { return ghError(0); }
+}
+async function ghPush(message) {
+  const c = ghConf();
+  if (!c.token || ghBusy) return;
+  ghBusy = true; ghMsg = '';
+  const body = JSON.stringify({app: 'Muscu', savedAt: new Date().toISOString(), data: S}, null, 1);
+  try {
+    let sha = c.sha;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const r = await ghApi('PUT', '/contents/' + GH_FILE, {message: message || 'Sauvegarde Muscu', content: toB64(body), ...(sha ? {sha} : {})});
+      if (r.status === 200 || r.status === 201) {
+        ghSet({sha: r.data.content.sha, lastPush: new Date().toISOString(), pending: false, error: ''});
+        setSync('gh');
+        return;
+      }
+      // le fichier a changé ailleurs (ou n'est pas connu ici) : on relit son empreinte et on réessaie
+      if ((r.status === 409 || r.status === 422) && attempt === 0) {
+        const g = await ghApi('GET', '/contents/' + GH_FILE);
+        sha = g.status === 200 ? g.data.sha : undefined;
+        continue;
+      }
+      throw {status: r.status};
+    }
+  } catch (e) {
+    ghMsg = ghError(e && e.status !== undefined ? e.status : 0);
+    ghSet({pending: true, error: ghMsg});
+    setSync('err');
+  } finally { ghBusy = false; if (view === 'routines') rerender(); }
+}
+// lit le fichier du dépôt ; null s'il n'existe pas encore
+async function ghPull() {
+  const r = await ghApi('GET', '/contents/' + GH_FILE);
+  if (r.status === 404) return null;
+  if (r.status !== 200) throw {status: r.status};
+  ghSet({sha: r.data.sha});
+  return JSON.parse(fromB64(r.data.content));
+}
+function ghMarkPending() { if (ghConf().token) ghSet({pending: true}); }
+// au lancement ou au retour d'internet : envoie ce qui n'a pas pu partir
+function ghRetry() { const c = ghConf(); if (c.token && c.pending && navigator.onLine !== false) ghPush('Sauvegarde automatique'); }
+window.addEventListener('online', ghRetry);
+function ghCard() {
+  const c = ghConf();
+  if (!c.token) return `<div class="card rt" id="ghcard"><div class="exname">Sauvegarde GitHub (privée)</div>
+    <p class="small muted">Envoie tes séances dans ton dépôt privé <b>${esc(GH_DEFAULT_REPO)}</b> après chaque séance. Colle ici ta clé GitHub (elle commence par <code>github_pat_</code>). Elle reste dans ce téléphone.</p>
+    <div class="row"><input type="password" class="field" id="ghtoken" autocomplete="off" placeholder="github_pat_…" style="flex:1;min-width:200px">
+      <button class="btn primary" data-act="ghsave">Enregistrer la clé</button></div>
+    <details class="small" style="margin-top:10px"><summary>Dépôt utilisé</summary>
+      <input type="text" class="field" id="ghrepo" value="${esc(c.repo || GH_DEFAULT_REPO)}" style="margin-top:6px;width:100%"></details>
+    ${ghMsg ? `<p class="small" style="font-weight:700">⚠ ${esc(ghMsg)}</p>` : ''}</div>`;
+  const when = c.lastPush ? fmtDate(c.lastPush, {weekday: 'short', day: 'numeric', month: 'short'}) + ' à ' + new Date(c.lastPush).toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'}) : 'jamais';
+  return `<div class="card rt" id="ghcard"><div class="row"><div style="flex:1;min-width:0"><div class="exname">Sauvegarde GitHub (privée)</div>
+      <div class="small muted">${esc(c.repo)} · dernier envoi : ${esc(when)}</div></div>
+      <span class="chipinfo ${c.pending ? 'warn' : 'ok'}">${ghBusy ? '⏳ Envoi…' : c.pending ? '⏳ À envoyer' : '✓ À jour'}</span></div>
+    ${c.error && c.pending ? `<p class="small" style="font-weight:700">⚠ ${esc(c.error)}</p>` : ''}
+    <div class="row" style="margin-top:12px">
+      <button class="btn primary" data-act="ghpush" ${ghBusy ? 'disabled' : ''}>⬆ Envoyer maintenant</button>
+      <button class="btn" data-act="ghpull" ${ghBusy ? 'disabled' : ''}>⬇ Récupérer depuis GitHub</button>
+      <div class="spacer"></div><button class="btn ghost danger" data-act="ghforget">Oublier la clé</button></div></div>`;
+}
+
+async function ghSaveKey() {
+  const token = ($('#ghtoken').value || '').trim(), repo = (($('#ghrepo') && $('#ghrepo').value) || GH_DEFAULT_REPO).trim();
+  if (!token) { ghMsg = 'Colle d\'abord ta clé GitHub.'; return render(); }
+  if (!/^[\w.-]+\/[\w.-]+$/.test(repo)) { ghMsg = 'Le dépôt doit s\'écrire « compte/nom », par exemple ' + GH_DEFAULT_REPO + '.'; return render(); }
+  ghSet({token, repo, sha: '', pending: true, error: ''});
+  toast('Vérification de la clé…');
+  const err = await ghCheck();
+  if (err) { try { localStorage.removeItem(GH_KEY); } catch (e) {} ghMsg = err; return render(); }
+  ghMsg = '';
+  // des données existent déjà sur GitHub (nouveau téléphone, réinstallation) ? on demande quoi garder
+  let remote = null;
+  try { remote = await ghPull(); } catch (e) {}
+  if (remote && remote.data && Array.isArray(remote.data.routines)) {
+    modal(`<h2>Des données existent déjà sur GitHub</h2>
+      <p>Sauvegarde du ${esc(fmtDate(remote.savedAt))} : ${remote.data.history.length} séance(s) enregistrée(s) dans l'appli.</p>
+      <p class="small muted">Ce téléphone en a ${S.history.length}. Choisis lesquelles garder.</p>
+      <div class="row" style="margin-top:16px"><button class="btn primary" id="ghuse">⬇ Récupérer celles de GitHub</button>
+        <button class="btn" id="ghkeep">⬆ Garder celles du téléphone</button></div>`);
+    $('#ghuse').onclick = () => { closeModal(); ghApply(remote); };
+    $('#ghkeep').onclick = () => { closeModal(); ghPush('Sauvegarde depuis le téléphone'); render(); };
+    return render();
+  }
+  toast('Clé enregistrée');
+  render();
+  ghPush('Première sauvegarde');
+}
+function ghApply(remote) {
+  const d = remote.data;
+  if (!d || !Array.isArray(d.routines) || !Array.isArray(d.history)) { toast('Le fichier sur GitHub n\'est pas une sauvegarde Muscu'); return; }
+  migrate(d);
+  S = d; allCache = null;
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+  ghSet({pending: false, error: '', lastPush: remote.savedAt});
+  toast('Données récupérées depuis GitHub');
+  render();
+}
+async function ghAskPull() {
+  let remote;
+  try { remote = await ghPull(); } catch (e) { ghMsg = ghError(e && e.status !== undefined ? e.status : 0); return render(); }
+  if (!remote) { toast('Rien sur GitHub pour l\'instant : envoie d\'abord tes données'); return; }
+  confirmBox(`Remplacer les données de cet appareil par la sauvegarde GitHub du ${esc(fmtDate(remote.savedAt))} (${remote.data.history.length} séance(s)) ?`, () => ghApply(remote), 'Récupérer');
 }
 
 /* ---------- Téléphone : l'écran reste allumé pendant une séance ---------- */
@@ -1001,6 +1143,7 @@ function saveSession() {
   if (a.prog) progState().done[a.prog] = a.id;
   S.active = null; stopRest(); save(); closeModal();
   toast('Séance enregistrée 💪'); go(a.prog ? 'program' : 'history');
+  ghPush('Séance du ' + fmtDate(a.startedAt, {day: 'numeric', month: 'short', year: 'numeric'}) + ' : ' + a.title);
 }
 
 /* ---------- Minuteur de repos / effort ---------- */
@@ -1053,11 +1196,11 @@ function vRoutines() {
   return `<h1>Mes routines</h1><p class="muted small">${S.routines.length} routines. Le jour est facultatif : si tu en choisis un, la routine apparaît en premier dans « Aujourd'hui » ce jour-là. Clique sur « Modifier » pour changer les exercices, séries et poids. Tout est enregistré tout de suite.</p>
     <div class="row" style="margin-bottom:12px"><button class="btn primary" data-act="radd">+ Nouvelle routine</button></div>
     ${searchBox()}<div id="rlist">${routinesList()}</div>
-    <h2>Sauvegarde</h2><div class="card row">
+    <h2>Sauvegarde</h2>${ghCard()}<div class="card row">
       <button class="btn" data-act="export">⬇ Exporter mes données</button>
       <label class="btn">⬆ Importer<input type="file" id="importfile" accept=".json" hidden></label>
       <div class="spacer"></div><button class="btn ghost danger" data-act="reset">Remettre les routines par défaut</button></div>
-    <p class="muted small">Les données sont gardées dans le navigateur de ce PC. Exporte de temps en temps pour garder une copie.</p>`;
+    <p class="muted small">Tes données sont gardées dans cet appareil${ghConf().token ? ' et envoyées dans ton dépôt GitHub privé' : ''}. Le fichier exporté sert de copie de secours.</p>`;
 }
 function routinesList() {
   const list = S.routines.map((r, ri) => matches(r) ? routineEditor(r, ri) : '').join('');
@@ -1426,6 +1569,10 @@ document.addEventListener('click', ev => {
     case 'xup': if (ei > 0) { const x = S.routines[ri].exercises; x.splice(ei - 1, 0, x.splice(ei, 1)[0]); save(); render(); } return;
     case 'reset': return confirmBox('Remplacer toutes tes routines par les routines par défaut ? (l\'historique est conservé)', () => { S.routines = defaultRoutines(); save(); render(); }, 'Remplacer');
     case 'export': return exportData();
+    case 'ghsave': return ghSaveKey();
+    case 'ghpush': return ghPush('Sauvegarde manuelle');
+    case 'ghpull': return ghAskPull();
+    case 'ghforget': return confirmBox('Oublier la clé GitHub sur cet appareil ? Tes données restent ici et sur GitHub.', () => { try { localStorage.removeItem(GH_KEY); } catch (e) {} ghMsg = ''; $('#sync').hidden = true; render(); }, 'Oublier');
     case 'hist': if (ev.target.closest('[data-act="hdel"]')) return; openHist.has(d.id) ? openHist.delete(d.id) : openHist.add(d.id); return render();
     case 'hdel': ev.stopPropagation(); return confirmBox('Supprimer cette séance de l\'historique ?', () => { S.history = S.history.filter(s => s.id !== d.id); save(); render(); }, 'Supprimer');
     case 'histall': histAll = true; return render();
@@ -1483,6 +1630,7 @@ async function exportData() {
 }
 render();
 cloudInit();
+ghRetry();
 </script>
 <script>
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
