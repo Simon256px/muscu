@@ -41,13 +41,15 @@ header .brand{font-weight:800;font-size:26px;letter-spacing:-.04em;flex-shrink:0
 header .brand span{color:var(--ochre)}
 nav{display:flex;gap:2px;background:var(--coal);border-radius:999px;padding:5px;overflow-x:auto;scrollbar-width:none;min-width:0}
 nav::-webkit-scrollbar{display:none}
-nav button{background:none;border:0;padding:9px 16px;border-radius:999px;color:#fff;cursor:pointer;font-weight:600;white-space:nowrap;flex-shrink:0}
+nav button{min-height:44px;background:none;border:0;padding:9px 16px;border-radius:999px;color:#fff;cursor:pointer;font-weight:600;white-space:nowrap;flex-shrink:0}
 nav button:hover{background:#2a2a2a}
 nav button.on{background:var(--cloud);color:var(--coal)}
+nav svg{display:none}
+nav button{position:relative}
 nav .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--moss);margin-left:6px;vertical-align:middle;box-shadow:0 0 0 2px #fff}
 header .hright{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0}
-.sync{font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
-.sync.bad{color:var(--coal);background:var(--yolk);padding:4px 10px;border-radius:999px}
+.sync{font:inherit;font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap;background:none;border:0;padding:6px 4px;cursor:pointer}
+.sync.bad{color:var(--coal);background:var(--yolk);padding:8px 12px;border-radius:999px;min-height:36px}
 header .mini{font-variant-numeric:tabular-nums;font-weight:700;cursor:pointer;background:var(--coal);color:#fff;padding:8px 14px;border-radius:999px;white-space:nowrap;flex-shrink:0}
 
 main{max-width:940px;margin:0 auto;padding:16px 20px 130px}
@@ -89,7 +91,8 @@ h2{font-size:22px;font-weight:800;letter-spacing:-.03em;margin:30px 0 12px}
 .exlist li:first-child{border-top:0}
 .exlist .n{flex:1;font-weight:600}
 .exlist li > .muted{text-align:right}
-.tag{display:inline-flex;align-items:center;gap:2px;font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--white);border:1.5px solid var(--line);white-space:nowrap;flex-shrink:0}
+.tag .restin{width:52px;height:34px;background:var(--cloud);border:0;border-radius:8px;color:inherit;text-align:center;font-weight:700;margin:0 4px}
+.tag{min-height:40px;display:inline-flex;align-items:center;gap:2px;font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--white);border:1.5px solid var(--line);white-space:nowrap;flex-shrink:0}
 
 /* séance */
 .sessionhead{display:flex;align-items:center;gap:18px;flex-wrap:wrap;position:sticky;top:calc(var(--hh) + 4px + env(safe-area-inset-top,0px));z-index:4;background:var(--coal);color:#fff;border-radius:var(--radius);padding:16px 20px;margin-bottom:16px;box-shadow:0 10px 30px #00000033}
@@ -102,7 +105,7 @@ h2{font-size:22px;font-weight:800;letter-spacing:-.03em;margin:30px 0 12px}
 .sessionhead.paused .btn{border-color:var(--coal)}
 .sessionhead.paused .btn.ghost{color:var(--coal);border-color:transparent}
 .clock{font-size:52px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.04em;line-height:1}
-.titleinput{background:none;border:0;border-bottom:2px dashed transparent;font-size:20px;font-weight:800;letter-spacing:-.02em;padding:2px 0;width:100%;color:inherit}
+.titleinput{display:block;resize:none;overflow:hidden;field-sizing:content;white-space:normal;line-height:1.2;font-family:inherit;min-height:40px;background:none;border:0;border-bottom:2px dashed transparent;font-size:20px;font-weight:800;letter-spacing:-.02em;padding:2px 0;width:100%;color:inherit}
 .titleinput:hover,.titleinput:focus{border-bottom-color:currentColor;outline:none}
 .progress{height:8px;background:#00000014;border-radius:99px;overflow:hidden;margin-top:8px}
 .sessionhead .progress{background:#ffffff30}
@@ -142,7 +145,7 @@ tr.done .check{background:var(--moss);border-color:var(--moss)}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center}
 .chip{display:inline-flex;align-items:center;gap:4px;background:var(--white);border:1.5px solid var(--line);border-radius:14px;padding:4px 10px;font-size:13px;color:var(--muted);white-space:nowrap}
 .chip b{color:var(--coal);margin-right:2px}
-.rt .chip input[type=number]{width:58px;min-height:32px;padding:3px 4px;text-align:center;color:var(--coal);font-weight:700}
+.rt .chip input[type=number]{width:58px;min-height:38px;padding:3px 4px;text-align:center;color:var(--coal);font-weight:700}
 
 /* tuiles colorées (stats, phases) */
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
@@ -162,6 +165,8 @@ tr.done .check{background:var(--moss);border-color:var(--moss)}
 #modal{position:fixed;inset:0;background:#000000a6;z-index:30;display:flex;align-items:center;justify-content:center;padding:16px}
 #modal .box{background:var(--paper);border-radius:28px;padding:24px;width:min(480px,100%);box-shadow:0 20px 60px #0005}
 #modal .box h2{margin-top:0}
+#modal label{min-height:44px;cursor:pointer}
+#modal input[type=checkbox]{width:22px;height:22px;flex-shrink:0;accent-color:var(--coal)}
 #toast{position:fixed;top:calc(var(--hh) + 8px);left:50%;transform:translateX(-50%);background:var(--coal);color:#fff;font-weight:600;padding:10px 20px;border-radius:999px;z-index:40;opacity:0;transition:opacity .2s;pointer-events:none}
 #toast.on{opacity:1}
 /* accueil : une séance, un bouton */
@@ -172,6 +177,7 @@ tr.done .check{background:var(--moss);border-color:var(--moss)}
 .todaycard.dark .muted{color:#d0d0d0}
 .todaycard.dark .progress{background:#ffffff30;margin:14px 0 4px}
 .todaycard .meta{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.sum{display:flex;align-items:center;min-height:40px;cursor:pointer;font-weight:600}
 .chipinfo.ok{background:var(--moss)}
 .chipinfo.warn{background:var(--yolk)}
 code{font-size:.92em;background:var(--cloud);padding:1px 5px;border-radius:6px}
@@ -239,6 +245,25 @@ table.data td:not(:first-child),table.data th:not(:first-child){text-align:right
 @media (max-width:700px){ .xax span.odd{visibility:hidden} .hero{font-size:44px} .chart{grid-template-rows:200px auto} }
 [hidden]{display:none!important}
 @media (max-width:700px){
+  /* onglets en bas de l'écran (pouce), icône + nom ; le haut garde le logo et le statut.
+     Pas de flou sur l'en-tête ici : il « capturerait » la barre fixée en bas. */
+  header{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--cloud)}
+  nav{position:fixed;left:0;right:0;bottom:0;z-index:15;border-radius:22px 22px 0 0;padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:2px;overflow:visible;box-shadow:0 -6px 24px #0003}
+  nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 0;border-radius:14px;font-size:10.5px;letter-spacing:-.01em;min-height:54px;min-width:0}
+  nav button svg{display:block;width:22px;height:22px}
+  nav .dot{position:absolute;top:6px;left:calc(50% + 8px);margin:0}
+  main{padding-bottom:calc(120px + env(safe-area-inset-bottom,0px))}
+  #restbar{bottom:calc(78px + env(safe-area-inset-bottom,0px));gap:6px;padding:8px 8px 8px 16px}
+  #restbar .t{font-size:22px;min-width:54px}
+  #restbar .btn{padding:8px 10px;font-size:14px}
+  #restbar .lbl{max-width:90px}
+  /* séance : tableau des séries tenu dans l'écran — « Précédent » passe sous le numéro de série */
+  table.sets .prev{display:none}
+  table.sets .setno::after{content:attr(data-prev);display:block;font-size:10px;font-weight:600;color:var(--muted);white-space:nowrap}
+  table.sets td{padding:5px 3px}
+  table.sets .num{width:58px}
+  .titleinput{font-size:16px}
+  .rt .chip input[type=number]{min-height:38px}
   :root{--hh:64px}
   header{padding:0 16px;gap:10px}
   .sync:not(.bad){display:none}
@@ -248,11 +273,22 @@ table.data td:not(:first-child),table.data th:not(:first-child){text-align:right
   .stats{grid-template-columns:repeat(2,1fr)}
   .week{gap:4px}
   .week .r{display:none}
-  #restbar{min-width:0;width:calc(100% - 24px);padding-left:18px}
+  #restbar{min-width:0;width:calc(100% - 24px)}
   #restbar .lbl{max-width:110px}
-  table.sets .num{width:62px}
   table.sets td,table.sets th{padding-left:4px;padding-right:4px}
   .clock{font-size:40px}
+}
+/* très petits téléphones (≤ 380 px) : on resserre sans rien cacher */
+@media (max-width:380px){
+  main{padding-left:12px;padding-right:12px}
+  .card,.todaycard{padding:14px}
+  table.sets td{padding:4px 2px}
+  table.sets .num{width:50px;padding:8px 4px}
+  .check{width:40px;height:40px}
+  #restbar{padding:8px 6px 8px 12px;gap:4px}
+  #restbar .lbl{max-width:58px}
+  #restbar .t{font-size:20px;min-width:48px}
+  #restbar .btn{padding:8px 8px;font-size:13px}
 }
 </style>
 </head>
@@ -260,14 +296,14 @@ table.data td:not(:first-child),table.data th:not(:first-child){text-align:right
 <header>
   <div class="brand">Muscu<span>.</span></div>
   <nav id="nav">
-    <button data-go="home">Aujourd'hui</button>
-    <button data-go="session">Séance</button>
-    <button data-go="program">Programme</button>
-    <button data-go="routines">Routines</button>
-    <button data-go="stats">Stats</button>
-    <button data-go="history">Historique</button>
+    <button data-go="home"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 4l9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span class="lbl">Aujourd'hui</span></button>
+    <button data-go="session"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 13V9M10 2h4"/></svg><span class="lbl">Séance</span><span class="dot" hidden></span></button>
+    <button data-go="program"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span class="lbl">Programme</span></button>
+    <button data-go="routines"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg><span class="lbl">Routines</span></button>
+    <button data-go="stats"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 20v-8M12 20V6M18 20v-6"/></svg><span class="lbl">Stats</span></button>
+    <button data-go="history"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg><span class="lbl">Historique</span></button>
   </nav>
-  <div class="hright"><div class="mini" id="miniclock" data-go="session" hidden></div><span class="sync" id="sync" hidden></span></div>
+  <div class="hright"><div class="mini" id="miniclock" data-go="session" hidden></div><button class="sync" id="sync" data-act="gosave" hidden></button></div>
 </header>
 <main id="view"></main>
 
@@ -389,7 +425,7 @@ function setSync(s) {
 let pendingRender = false;
 function rerender() {
   // ne pas effacer une saisie en cours : on redessine quand le champ est quitté
-  if (document.activeElement && document.activeElement.matches('input, select')) pendingRender = true; else render();
+  if (document.activeElement && document.activeElement.matches('input, select, textarea')) pendingRender = true; else render();
 }
 document.addEventListener('focusout', () => { if (pendingRender) { pendingRender = false; setTimeout(render, 0); } });
 function applyRemote(st, rt, hs) {
@@ -530,7 +566,7 @@ function ghCard() {
     <p class="small muted">Envoie tes séances dans ton dépôt privé <b>${esc(GH_DEFAULT_REPO)}</b> après chaque séance. Colle ici ta clé GitHub (elle commence par <code>github_pat_</code>). Elle reste dans ce téléphone.</p>
     <div class="row"><input type="password" class="field" id="ghtoken" autocomplete="off" placeholder="github_pat_…" style="flex:1;min-width:200px">
       <button class="btn primary" data-act="ghsave">Enregistrer la clé</button></div>
-    <details class="small" style="margin-top:10px"><summary>Dépôt utilisé</summary>
+    <details class="small" style="margin-top:10px"><summary class="sum">Dépôt utilisé</summary>
       <input type="text" class="field" id="ghrepo" value="${esc(c.repo || GH_DEFAULT_REPO)}" style="margin-top:6px;width:100%"></details>
     ${ghMsg ? `<p class="small" style="font-weight:700">⚠ ${esc(ghMsg)}</p>` : ''}</div>`;
   const when = c.lastPush ? fmtDate(c.lastPush, {weekday: 'short', day: 'numeric', month: 'short'}) + ' à ' + new Date(c.lastPush).toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'}) : 'jamais';
@@ -662,7 +698,7 @@ function render() {
   document.querySelectorAll('#nav button').forEach(b => {
     b.hidden = b.dataset.go === 'session' && !S.active; // l'onglet Séance n'apparaît que pendant une séance
     b.classList.toggle('on', b.dataset.go === view);
-    b.innerHTML = b.textContent.replace(/\s+$/, '') + (b.dataset.go === 'session' && S.active ? '<span class="dot"></span>' : '');
+    const dot = b.querySelector('.dot'); if (dot) dot.hidden = !(b.dataset.go === 'session' && S.active);
   });
   $('#view').innerHTML = ({home: vHome, session: vSession, program: vProgram, stats: vStats, routines: vRoutines, history: vHistory})[view]();
   $('#exnames').innerHTML = [...new Set([...S.routines.flatMap(r => r.exercises.map(e => e.name)), ...allSessions().flatMap(s => s.ex.map(e => e.name))])]
@@ -1061,7 +1097,7 @@ function vSession() {
   if (!a) return vHome();
   const all = a.ex.flatMap(e => e.sets), done = all.filter(x => x.done).length;
   let h = `<div class="sessionhead ${a.pausedAt ? 'paused' : ''}">
-    <div style="flex:1;min-width:200px"><input class="titleinput" data-sf="title" value="${esc(a.title)}">
+    <div style="flex:1;min-width:200px"><textarea class="titleinput" id="sesstitle" data-sf="title" rows="1" aria-label="Titre de la séance">${esc(a.title)}</textarea>
       <div class="muted small">Commencée à ${new Date(a.startedAt).toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'})} · ${done}/${all.length} séries</div>
       <div class="progress"><i style="width:${all.length ? done / all.length * 100 : 0}%"></i></div></div>
     <div class="clock ${a.pausedAt ? 'paused' : ''}" data-clock>${fmtClock(elapsed())}</div>
@@ -1088,13 +1124,13 @@ function exCard(e, ei, a) {
         ${info.t ? `<div class="how">${esc(info.t)}</div>` : ''}
         <div class="muted small">${info.m ? '🎯 ' + esc(info.m) + ' · ' : ''}${e.note ? esc(e.note) + ' · ' : ''}Dernière fois : ${last ? esc(fmtDate(last.date, {day: 'numeric', month: 'short', year: '2-digit'})) + ' — ' + esc(fmtSet(last.sets[0])) : 'jamais'}${best ? ' · Record : ' + esc(fmtSet(best)) : ''}</div></div>
       <div class="extools">
-        <span class="tag" title="Temps de repos après chaque série">⏱ repos <input type="number" min="0" step="15" data-ef="rest" data-e="${ei}" value="${e.rest}" style="width:52px;background:none;border:0;color:inherit;text-align:right">s</span>
+        <span class="tag" title="Temps de repos après chaque série">⏱ repos <input type="number" min="0" step="15" data-ef="rest" data-e="${ei}" value="${e.rest}" class="restin">s</span>
         <button class="btn ghost" data-act="exup" data-e="${ei}" title="Monter">↑</button>
         <button class="btn ghost" data-act="exdel" data-e="${ei}" title="Retirer l'exercice">🗑</button></div>
     </div>
-  <table class="sets"><thead><tr><th>Série</th><th>Précédent</th><th>kg</th><th>${t ? 'Secondes' : 'Reps'}</th><th></th></tr></thead><tbody>
+  <table class="sets"><thead><tr><th>Série</th><th class="prev">Précédent</th><th>kg</th><th>${t ? 'Secondes' : 'Reps'}</th><th></th></tr></thead><tbody>
   ${e.sets.map((x, si) => `<tr class="${x.done ? 'done' : ''}">
-    <td class="setno">${si + 1}</td>
+    <td class="setno" data-prev="${last && last.sets[si] ? esc(fmtSet(last.sets[si])) : ''}">${si + 1}</td>
     <td class="prev">${last && last.sets[si] ? esc(fmtSet(last.sets[si])) : '—'}</td>
     <td><input class="num" type="number" min="0" step="0.5" data-e="${ei}" data-s="${si}" data-k="w" value="${x.w}"></td>
     <td><input class="num" type="number" min="0" step="${t ? 5 : 1}" data-e="${ei}" data-s="${si}" data-k="${t ? 's' : 'r'}" value="${t ? x.s : x.r}">
@@ -1569,6 +1605,7 @@ document.addEventListener('click', ev => {
     case 'xup': if (ei > 0) { const x = S.routines[ri].exercises; x.splice(ei - 1, 0, x.splice(ei, 1)[0]); save(); render(); } return;
     case 'reset': return confirmBox('Remplacer toutes tes routines par les routines par défaut ? (l\'historique est conservé)', () => { S.routines = defaultRoutines(); save(); render(); }, 'Remplacer');
     case 'export': return exportData();
+    case 'gosave': go('routines'); { const c = $('#ghcard'); if (c) c.scrollIntoView({block: 'center'}); } return;
     case 'ghsave': return ghSaveKey();
     case 'ghpush': return ghPush('Sauvegarde manuelle');
     case 'ghpull': return ghAskPull();
@@ -1610,6 +1647,7 @@ document.addEventListener('change', ev => {
 document.addEventListener('keydown', ev => {
   if (ev.key === 'Escape' && !$('#modal').hidden) closeModal();
   if (ev.key === 'Enter' && ev.target.id === 'addex') document.querySelector('[data-act="addex"]').click();
+  if (ev.key === 'Enter' && ev.target.id === 'sesstitle') { ev.preventDefault(); ev.target.blur(); }
   if (ev.key === ' ' && view === 'session' && S.active && !/INPUT|SELECT|TEXTAREA|BUTTON/.test(ev.target.tagName)) { ev.preventDefault(); togglePause(); }
 });
 $('#modal').addEventListener('click', ev => { if (ev.target.id === 'modal') closeModal(); });

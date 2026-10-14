@@ -1,5 +1,5 @@
 // Garde l'appli dans le téléphone pour qu'elle s'ouvre sans internet.
-const CACHE = 'muscu-2c0c0b8f23';
+const CACHE = 'muscu-6551f1fdef';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-maskable.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -13,7 +13,7 @@ self.addEventListener('fetch', e => {
   const url = new URL(req.url);
   // la page : réseau d'abord (pour recevoir les mises à jour), sinon la copie gardée
   if (req.mode === 'navigate') {
-    e.respondWith(fetch(req).then(r => { const c = r.clone(); caches.open(CACHE).then(x => x.put('index.html', c)); return r; })
+    e.respondWith(fetch(req.url, {cache: 'no-cache', credentials: 'same-origin'}).then(r => { const c = r.clone(); caches.open(CACHE).then(x => x.put('index.html', c)); return r; })
       .catch(() => caches.match('index.html')));
     return;
   }
