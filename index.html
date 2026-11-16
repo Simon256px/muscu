@@ -734,7 +734,7 @@ function vHome() {
       ${weekDots(w)}`;
   } else {
     h += `<p class="kicker">${esc(date)}</p><h1>Programme terminé 🏆</h1>
-      <div class="todaycard"><p>Bravo, tu as fait les 36 séances. Choisis une routine ou relance le programme dans l'onglet Programme.</p></div>`;
+      <div class="todaycard"><p>Bravo, tu as fait les ${PROG_WEEKS.length * PROG_DAYS.length} séances. Choisis une routine ou relance le programme dans l'onglet Programme.</p></div>`;
   }
   const todays = S.routines.filter(r => r.day === today);
   if (todays.length) h += `<h2>Ta routine du ${DAYS[today].toLowerCase()}</h2>` + todays.map(routineCard).join('');
@@ -757,7 +757,7 @@ function weekDots(w) {
   const done = progState().done, n = PROG_DAYS.filter((_, d) => done[w + '-' + d]).length;
   return `<div class="weekdots"><span class="muted small">Semaine ${w + 1} du programme</span>
     ${PROG_DAYS.map((D, d) => `<span class="wd ${done[w + '-' + d] ? 'ok' : ''}">${done[w + '-' + d] ? '✓' : '○'} ${DAYS[D.dow]}</span>`).join('')}
-    <span class="muted small">${n} / 3 faites</span></div>`;
+    <span class="muted small">${n} / ${PROG_DAYS.length} faites</span></div>`;
 }
 function routineCard(r) {
   return `<div class="card"><div class="row"><div style="flex:1;min-width:0"><div class="exname">${esc(r.name)}</div>
@@ -980,6 +980,11 @@ const EXINFO = Object.fromEntries([
   ['Curl poignets assis','wrist','pull','Avant-bras','Avant-bras sur les cuisses, paumes vers le haut, plie les poignets.'],
   ['Extension poignets assis (barre)','wrist','pull','Avant-bras','Avant-bras sur les cuisses, paumes vers le bas, relève les poignets.'],
   ['Dumbbell Suitcase','carry','core','Gainage, avant-bras','Un haltère lourd d\'un côté, tiens-toi bien droit sans pencher.'],
+  ['Marche du fermier (haltère)','carry','core','Poigne, trapèzes, gainage','Un haltère lourd dans chaque main, marche bien droit, épaules basses, petits pas.'],
+  ['Hip thrust (haltère)','hipthrust','legs','Fessiers','Haut du dos sur le canapé ou le banc, haltère sur les hanches, monte le bassin et serre les fesses 1 s.'],
+  ['Leg curl glissé','bridge','legs','Ischios (arrière des cuisses)','Allongé, talons sur une serviette, bassin levé : ramène les talons vers les fesses, puis repousse lentement.'],
+  ['Soulevé de terre roumain une jambe (haltère)','hinge','legs','Ischios, fessiers, équilibre','Sur une jambe, haltère dans la main opposée : bascule le buste en tendant l\'autre jambe derrière, dos plat.'],
+  ['Mollets une jambe','calf','legs','Mollets','Sur une marche, sur une seule jambe : monte le plus haut possible, redescends lentement, talon sous la marche.'],
   ['Gainage (planche)','plank','core','Abdos, tout le tronc','Sur les avant-bras, corps droit comme une planche, ne creuse pas le dos.'],
   ['Gainage latéral','sideplank','core','Abdos (côtés)','Sur un avant-bras, corps de profil bien aligné, bassin haut.'],
   ['Crunch','crunch','core','Abdos','Allongé genoux pliés, décolle les épaules en contractant le ventre.'],
@@ -1268,68 +1273,86 @@ function routineEditor(r, ri) {
     ${open ? `<div class="row" style="margin-top:8px"><button class="btn ghost" data-act="xadd" data-r="${ri}">+ Exercice</button></div>` : ''}</div>`;
 }
 
-/* ---------- Programme personnalisé : 12 semaines, lundi / mercredi / vendredi ---------- */
-// Références = tes vraies charges d'avant la pause (export Hevy, sept. → déc. 2025), même découpage
-// que tes programmes « Semaine 1→8 » et « P2S1 » : jambes / poitrine-épaules-biceps / dos-triceps.
+/* ---------- Programme perso « Tank » (questionnaire du 16/11/2026) : 19 semaines, 4 séances ---------- */
+// Haut A (lun) / Bas A (mar) / Haut B (jeu) / Bas B (ven). Exercices faisables à la salle ET à la maison
+// (haltères ≤ 20 kg, kettlebell). Références = tes charges Hevy de fin 2025 (kg = total des 2 haltères).
 // [exercice, kg, reps, secondes, principal ?] — principal = gros exercice du jour (plus de séries et de repos)
+const PROG_ID = 'tank-4j-2026-11';
 const PROG_DAYS = [
-  {dow: 1, name: 'Jambes & tronc', ex: [
-    ['Goblet squat', 30, 8, 0, true],
-    ['Soulevé de terre roumain (haltère)', 40, 12, 0, true],
-    ['Squat bulgare (haltère)', 32, 10, 0, true],
-    ['Relevé de bassin (barre)', 30, 15, 0, false],
-    ['Mollets debout', 0, 30, 0, false],
-    ['Gainage (planche)', 0, 0, 60, false]]},
-  {dow: 3, name: 'Poitrine, épaules & biceps', ex: [
+  {dow: 1, name: 'Haut du corps A', ex: [
     ['Développé couché (haltère)', 40, 10, 0, true],
-    ['Développé militaire (haltère)', 24, 12, 0, true],
-    ['Écarté couché (haltère)', 24, 12, 0, false],
-    ['Élévation latérale (haltère)', 16, 15, 0, false],
-    ['Curl biceps (haltère)', 24, 8, 0, false],
-    ['Pompes', 0, 20, 0, false]]},
-  {dow: 5, name: 'Dos & triceps', ex: [
-    ['Rowing penché avec haltères', 24, 12, 0, true],
-    ['Rowing un bras (haltère)', 22, 12, 0, true],
-    ['Traction pronation', 0, 10, 0, true],
-    ['Shrug (haltère)', 32, 12, 0, false],
+    ['Rowing penché avec haltères', 32, 10, 0, true],
+    ['Développé militaire (haltère)', 24, 12, 0, false],
+    ['Traction pronation', 0, 8, 0, false],
+    ['Élévation latérale (haltère)', 12, 20, 0, false],
+    ['Curl biceps (haltère)', 24, 8, 0, false]]},
+  {dow: 2, name: 'Bas du corps A', ex: [
+    ['Squat bulgare (haltère)', 32, 10, 0, true],
+    ['Soulevé de terre roumain (haltère)', 40, 12, 0, true],
+    ['Goblet squat (kettlebell)', 27, 12, 0, false],
+    ['Leg curl glissé', 0, 12, 0, false],
+    ['Mollets une jambe', 0, 15, 0, false],
+    ['Marche du fermier (haltère)', 0, 0, 40, false]]},
+  {dow: 4, name: 'Haut du corps B', ex: [
+    ['Traction pronation', 0, 8, 0, true],
+    ['Développé incliné (haltère)', 24, 10, 0, true],
+    ['Pompes lestées', 15, 10, 0, false],
+    ['Oiseau / Y-raise (haltère)', 8, 12, 0, false],
     ['Extension triceps (haltère)', 14, 12, 0, false],
-    ['Curl poignets assis', 20, 16, 0, false]]},
+    ['Curl marteau (haltère)', 20, 12, 0, false]]},
+  {dow: 5, name: 'Bas du corps B', ex: [
+    ['Hip thrust (haltère)', 30, 15, 0, true],
+    ['Fente arrière (haltère)', 32, 12, 0, true],
+    ['Soulevé de terre roumain une jambe (haltère)', 20, 10, 0, false],
+    ['Leg curl glissé', 0, 12, 0, false],
+    ['Gainage latéral', 0, 0, 40, false],
+    ['Dumbbell Suitcase', 0, 0, 30, false]]},
 ];
-// pct = % de la charge de référence ; main / acc = [séries, reps] des exercices principaux / secondaires
+// pct = % de la charge de référence (accPct : plafond pour les exercices secondaires) ; main / acc = [séries, reps]
 const PROG_WEEKS = [
-  {phase: 0, pct: .55, main: [3, 12], acc: [3, 12]},
-  {phase: 0, pct: .60, main: [3, 12], acc: [3, 12]},
-  {phase: 0, pct: .65, main: [3, 12], acc: [3, 12]},
-  {phase: 0, pct: .55, main: [2, 10], acc: [2, 12], light: true},
-  {phase: 1, pct: .70, main: [4, 10], acc: [3, 12]},
-  {phase: 1, pct: .75, main: [4, 10], acc: [3, 12]},
-  {phase: 1, pct: .80, main: [4, 10], acc: [3, 12]},
-  {phase: 1, pct: .65, main: [2, 10], acc: [2, 12], light: true},
-  {phase: 2, pct: .85, main: [4, 8], acc: [3, 10]},
-  {phase: 2, pct: .90, main: [4, 8], acc: [3, 10]},
-  {phase: 2, pct: .95, main: [4, 6], acc: [3, 10]},
-  {phase: 2, pct: 1.0, main: [4, 6], acc: [3, 10]},
+  {phase: 0, pct: .65, main: [2, 12], acc: [2, 12]},
+  {phase: 0, pct: .70, main: [2, 12], acc: [2, 12]},
+  {phase: 0, pct: .75, main: [3, 12], acc: [3, 12]},
+  {phase: 0, pct: .80, main: [3, 10], acc: [3, 12]},
+  {phase: 1, pct: .85, main: [3, 10], acc: [3, 12]},
+  {phase: 1, pct: .90, main: [3, 10], acc: [3, 12]},
+  {phase: 1, pct: .95, main: [3, 10], acc: [3, 12]},
+  {phase: 1, pct: 1.0, main: [3, 10], acc: [3, 12]},
+  {phase: 1, pct: .75, main: [2, 10], acc: [2, 12], light: true},
+  {phase: 2, pct: 1.0, main: [4, 10], acc: [3, 12]},
+  {phase: 2, pct: 1.05, main: [4, 10], acc: [3, 12]},
+  {phase: 2, pct: 1.10, main: [4, 8], acc: [3, 12], accPct: 1.05},
+  {phase: 2, pct: 1.10, main: [4, 8], acc: [3, 12], accPct: 1.05},
+  {phase: 2, pct: .80, main: [2, 10], acc: [2, 12], light: true},
+  {phase: 3, pct: 1.10, main: [4, 6], acc: [3, 10], accPct: 1.05},
+  {phase: 3, pct: 1.15, main: [4, 6], acc: [3, 10], accPct: 1.05},
+  {phase: 3, pct: 1.20, main: [4, 5], acc: [3, 10], accPct: 1.05},
+  {phase: 3, pct: 1.20, main: [4, 5], acc: [3, 10], accPct: 1.05},
+  {phase: 3, pct: .85, main: [2, 6], acc: [2, 10], light: true},
 ];
 const PHASES = [
-  {name: 'Reprise', weeks: 'Semaines 1 → 4', text: '55 à 65 % de tes charges d\'avant, 12 répétitions propres. On retrouve le geste et on laisse muscles et tendons se réhabituer. La semaine 4 est plus légère.'},
-  {name: 'Construction', weeks: 'Semaines 5 → 8', text: '70 à 80 %, 4 séries de 10 sur les gros exercices : le volume monte. La semaine 8 est plus légère pour récupérer.'},
-  {name: 'Force', weeks: 'Semaines 9 → 12', text: '85 à 100 %, séries plus courtes (8 puis 6 reps) et plus de repos. En semaine 12, tu retrouves tes charges d\'avant la pause.'},
+  {name: 'Reprise', weeks: 'Semaines 1 → 4', text: '65 à 80 % de tes charges de fin 2025, 2 séries les 2 premières semaines puis 3. Technique propre, tu t\'arrêtes 3 reps avant l\'échec. La mémoire musculaire fait revenir le muscle vite.'},
+  {name: 'Construction 1', weeks: 'Semaines 5 → 9', text: '85 à 100 % : tu retrouves tes anciennes charges. 2 reps avant l\'échec. Arrivée à la salle : mêmes exercices. Semaine 9 légère.'},
+  {name: 'Construction 2', weeks: 'Semaines 10 → 14', text: 'Tu dépasses tes anciens records (100 à 110 %), 4 séries sur les gros exercices. Semaine 14 légère.'},
+  {name: 'Force', weeks: 'Semaines 15 → 19', text: '110 à 120 % sur les gros exercices, 4 × 5–6 reps, 2 min de repos. Semaine 19 légère, puis on relance un cycle avec tes nouvelles charges.', force: true},
 ];
 const isoDay = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const roundKg = kg => Math.max(2, Math.round(kg / 2) * 2); // haltères : par pas de 2 kg
 function progState() {
-  if (!S.program) S.program = {start: isoDay(mondayOf(new Date())), done: {}};
+  // nouveau programme → on repart de la semaine 1 cette semaine (l'historique des séances n'est pas touché)
+  if (!S.program || S.program.id !== PROG_ID) S.program = {id: PROG_ID, start: isoDay(mondayOf(new Date())), done: {}};
   return S.program;
 }
 function progSession(w, d) {
   const W = PROG_WEEKS[w], D = PROG_DAYS[d];
   const ex = D.ex.map(([name, kg, reps, sec, main]) => {
     const [n, r] = main ? W.main : W.acc;
-    const set = sec ? {w: 0, r: 0, s: Math.max(15, Math.round(sec * W.pct / 5) * 5)}
+    const pct = main ? W.pct : Math.min(W.pct, W.accPct ?? W.pct);
+    const set = sec ? {w: 0, r: 0, s: Math.max(15, Math.round(sec * pct / 5) * 5)}
       // près de 100 % on ne demande pas plus de reps que ce que tu faisais avant à cette charge
-      : kg ? {w: roundKg(kg * W.pct), r: Math.min(r, reps + Math.round((1 - W.pct) * 30)), s: 0}
-      : {w: 0, r: Math.max(3, Math.round(reps * W.pct)), s: 0}; // poids du corps : les reps suivent le %
-    return {name, type: sec ? 'time' : 'reps', rest: main ? (W.phase === 2 ? 120 : 90) : 60,
+      : kg ? {w: roundKg(kg * pct), r: Math.max(3, Math.min(r, reps + Math.round((1 - pct) * 30))), s: 0}
+      : {w: 0, r: Math.max(3, Math.round(reps * pct)), s: 0}; // poids du corps : les reps suivent le %
+    return {name, type: sec ? 'time' : 'reps', rest: main ? (PHASES[W.phase].force ? 120 : 90) : 60,
       note: 'avant la pause : ' + fmtSet({w: kg, r: sec ? 0 : reps, s: sec}), sets: Array.from({length: n}, () => ({...set}))};
   });
   return {name: `Programme S${w + 1} – ${DAYS[D.dow]} : ${D.name}`, exercises: [warm(), ...ex]};
@@ -1356,26 +1379,27 @@ function progCard(w, d, big) {
 }
 let openWeek = null;
 function vProgram() {
-  if (!S.program) { progState(); save(); }
+  if (!S.program || S.program.id !== PROG_ID) { progState(); save(); }
   const P = S.program, total = PROG_WEEKS.length * PROG_DAYS.length, nDone = Object.keys(P.done).length;
   const next = progNext(), cur = openWeek ?? (next ? next[0] : PROG_WEEKS.length - 1);
   let h = `<h1>Mon programme</h1>
-    <p class="muted small">12 semaines · 3 séances par semaine (lundi, mercredi, vendredi). Construit à partir de ce que tu faisais vraiment avant ta pause :
-    tes exercices les plus faits, ton découpage jambes / poitrine-épaules / dos de tes programmes « Semaine » et « P2S1 », et tes charges de fin 2025 comme référence.</p>
+    <p class="muted small">${PROG_WEEKS.length} semaines · ${PROG_DAYS.length} séances par semaine (lundi, mardi, jeudi, vendredi) · objectif +1 kg par mois. Mêmes exercices à la salle et à la maison :
+    à la salle, prends les haltères au poids prévu ; à la maison, si tes haltères (20 kg max) sont trop légers, ajoute des reps et descends en 3–4 s.
+    Pas encore de barre de traction ? Remplace les tractions par du rowing un bras. Charges de référence = tes charges Hevy de fin 2025.</p>
     <div class="card"><div class="row"><div style="flex:1;min-width:200px"><div class="exname">${nDone} / ${total} séances faites</div>
       <div class="progress"><i style="width:${nDone / total * 100}%"></i></div></div>
       <label class="small muted row" style="gap:6px">Début du programme <input type="date" class="field" id="pstartdate" value="${P.start}"></label></div></div>`;
   h += next ? `<h2>Prochaine séance</h2>${progCard(next[0], next[1], true)}`
     : `<div class="card"><div class="exname">🏆 Programme terminé !</div><div class="muted small">Tu as retrouvé tes charges d'avant. Tu peux changer la date de début pour le refaire avec de nouvelles références.</div></div>`;
-  h += `<h2>Les 3 phases</h2><div class="stats" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">${PHASES.map(p => `<div class="stat"><b style="font-size:17px">${p.name}</b>
+  h += `<h2>Les ${PHASES.length} phases</h2><div class="stats" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">${PHASES.map(p => `<div class="stat"><b style="font-size:17px">${p.name}</b>
     <span class="muted small">${p.weeks}</span><p class="small" style="margin:6px 0 0">${p.text}</p></div>`).join('')}</div>
     <div class="banner">📈 <b>Règle simple</b> — si toutes tes séries passent facilement (tu pourrais en faire 3 de plus), monte de 2 kg pendant la séance.
       Si c'est trop dur ou qu'une douleur apparaît, baisse de 2 kg ou fais une série de moins. Le programme est un guide : la colonne « Précédent » te montre ce que tu as vraiment fait.</div>`;
   h += `<h2>Semaine par semaine</h2>` + PROG_WEEKS.map((W, w) => {
     const nd = PROG_DAYS.filter((_, d) => P.done[w + '-' + d]).length, open = w === cur;
     return `<div class="card ${open ? '' : 'hist'}" ${open ? '' : `data-act="pweek" data-w="${w}"`}><div class="row">
-      <div style="flex:1"><div class="exname">Semaine ${w + 1} ${nd === 3 ? '✓' : ''}</div>
-      <div class="muted small">${PHASES[W.phase].name}${W.light ? ' · semaine légère' : ''} · ${Math.round(W.pct * 100)} % · du ${esc(fmtDate(progDate(w, 0), {day: 'numeric', month: 'short'}))} au ${esc(fmtDate(progDate(w, 2), {day: 'numeric', month: 'short'}))} · ${nd}/3 faites</div></div>
+      <div style="flex:1"><div class="exname">Semaine ${w + 1} ${nd === PROG_DAYS.length ? '✓' : ''}</div>
+      <div class="muted small">${PHASES[W.phase].name}${W.light ? ' · semaine légère' : ''} · ${Math.round(W.pct * 100)} % · du ${esc(fmtDate(progDate(w, 0), {day: 'numeric', month: 'short'}))} au ${esc(fmtDate(progDate(w, PROG_DAYS.length - 1), {day: 'numeric', month: 'short'}))} · ${nd}/${PROG_DAYS.length} faites</div></div>
       ${open ? `<button class="btn ghost" data-act="pweek" data-w="-1">Replier</button>` : '<span class="muted">▾</span>'}</div>
       ${open ? `<div style="margin-top:10px">${PROG_DAYS.map((_, d) => progCard(w, d, false)).join('')}</div>` : ''}</div>`;
   }).join('');
