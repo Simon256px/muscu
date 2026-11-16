@@ -77,6 +77,22 @@ h2{font-size:22px;font-weight:800;letter-spacing:-.03em;margin:30px 0 12px}
 .btn.big{min-height:50px;padding:12px 26px;font-size:16px;font-weight:700}
 .btn:disabled,.btn:disabled:hover{background:var(--cloud);border-color:var(--ash);color:#444;cursor:not-allowed;transform:none}
 
+/* onglet Plan */
+.ptable{width:100%;border-collapse:collapse;font-size:14px}
+.ptable th,.ptable td{text-align:left;padding:8px 6px;border-top:1px solid var(--line);vertical-align:top}
+.ptable th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-top:0}
+.ptable td.r,.ptable th.r{text-align:right;white-space:nowrap}
+details.card>summary{cursor:pointer;font-weight:800;font-size:17px;list-style:none;min-height:44px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+details.card>summary::-webkit-details-marker{display:none}
+details.card>summary::after{content:"▾";color:var(--muted)}
+details.card[open]>summary::after{content:"▴"}
+.meal h3{margin:0 0 2px;font-size:17px}
+.meal ul{margin:8px 0 0;padding-left:18px}
+.meal li{margin:3px 0}
+.wrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.wrow input{width:110px;font-size:18px;font-weight:700}
+.tag{display:inline-block;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:800}
+.tag.ok{background:var(--moss);color:#fff} .tag.slow{background:var(--yolk);color:var(--coal)} .tag.fast{background:var(--ochre);color:var(--coal)}
 .banner{background:var(--yolk-soft);border-left:6px solid var(--yolk);color:var(--coal);border-radius:16px;padding:14px 16px;margin-bottom:14px;font-size:14px}
 .week{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:18px}
 .week > div{background:var(--paper);border-radius:18px;padding:10px 6px;text-align:center;min-height:74px;box-shadow:var(--shadow)}
@@ -278,6 +294,8 @@ table.data td:not(:first-child),table.data th:not(:first-child){text-align:right
   table.sets td,table.sets th{padding-left:4px;padding-right:4px}
   .clock{font-size:40px}
 }
+/* barre du bas à 6–7 onglets : noms courts sur les téléphones étroits pour qu'aucun ne soit coupé */
+@media (max-width:440px){ nav .lbl[data-short]{font-size:0} nav .lbl[data-short]::after{content:attr(data-short);font-size:10.5px} }
 /* très petits téléphones (≤ 380 px) : on resserre sans rien cacher */
 @media (max-width:380px){
   main{padding-left:12px;padding-right:12px}
@@ -296,12 +314,13 @@ table.data td:not(:first-child),table.data th:not(:first-child){text-align:right
 <header>
   <div class="brand">Muscu<span>.</span></div>
   <nav id="nav">
-    <button data-go="home"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 4l9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span class="lbl">Aujourd'hui</span></button>
+    <button data-go="home"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 4l9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span class="lbl" data-short="Accueil">Aujourd'hui</span></button>
     <button data-go="session"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 13V9M10 2h4"/></svg><span class="lbl">Séance</span><span class="dot" hidden></span></button>
-    <button data-go="program"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span class="lbl">Programme</span></button>
+    <button data-go="program"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span class="lbl" data-short="Prog.">Programme</span></button>
+    <button data-go="plan"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M17 21V3c-2 1-3 4-3 7h3"/></svg><span class="lbl">Plan</span></button>
     <button data-go="routines"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg><span class="lbl">Routines</span></button>
     <button data-go="stats"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 20v-8M12 20V6M18 20v-6"/></svg><span class="lbl">Stats</span></button>
-    <button data-go="history"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg><span class="lbl">Historique</span></button>
+    <button data-go="history"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg><span class="lbl" data-short="Histo.">Historique</span></button>
   </nav>
   <div class="hright"><div class="mini" id="miniclock" data-go="session" hidden></div><button class="sync" id="sync" data-act="gosave" hidden></button></div>
 </header>
@@ -700,7 +719,7 @@ function render() {
     b.classList.toggle('on', b.dataset.go === view);
     const dot = b.querySelector('.dot'); if (dot) dot.hidden = !(b.dataset.go === 'session' && S.active);
   });
-  $('#view').innerHTML = ({home: vHome, session: vSession, program: vProgram, stats: vStats, routines: vRoutines, history: vHistory})[view]();
+  $('#view').innerHTML = ({home: vHome, session: vSession, program: vProgram, plan: vPlan, stats: vStats, routines: vRoutines, history: vHistory})[view]();
   $('#exnames').innerHTML = [...new Set([...S.routines.flatMap(r => r.exercises.map(e => e.name)), ...allSessions().flatMap(s => s.ex.map(e => e.name))])]
     .sort((a, b) => a.localeCompare(b, 'fr')).map(n => `<option value="${esc(n)}">`).join('');
   tick();
@@ -1406,6 +1425,150 @@ function vProgram() {
   return h;
 }
 
+/* ---------- Plan : alimentation, poids, règles (questionnaire du 16/11/2026) ---------- */
+// Profil : H 26 ans, 178 cm, 55 kg, assis la journée, gros appétit, mange de tout, aime cuisiner, objectif +1 kg/mois.
+const PLAN_START_KG = 55;
+const MEALS = [
+  {t: '08:00', name: 'Petit-déjeuner', k: 660, p: 27, items: ['80 g de flocons d\'avoine', '300 ml de lait demi-écrémé', '1 banane', '20 g de beurre de cacahuète', '+ 3 à 5 g de créatine'],
+    how: 'Porridge : flocons + lait au micro-ondes 2 min, banane et beurre de cacahuète dessus.'},
+  {t: '12:30', name: 'Déjeuner', k: 740, p: 47, items: ['120 g de riz (poids cru)', '150 g de blanc de poulet (cru)', '200 g de légumes', '1 c. à soupe d\'huile d\'olive (10 g)'],
+    how: 'L\'huile se met crue sur l\'assiette : c\'est une façon simple d\'ajouter des calories.'},
+  {t: '16:30', name: 'Collation (1 h avant la séance)', k: 360, p: 27, items: ['200 g de skyr nature', '1 fruit', '25 g d\'amandes'],
+    how: 'Jour sans séance : même collation, à la même heure.'},
+  {t: '20:00', name: 'Dîner', k: 730, p: 45, items: ['120 g de pâtes (poids cru)', '125 g de bœuf haché 5 % (cru) — saumon 2 soirs/semaine', '200 g de légumes', '1 c. à soupe d\'huile d\'olive (10 g)'],
+    how: 'Les soirs de saumon, ne mets pas d\'huile : il est déjà gras.'},
+  {t: '22:30', name: 'Avant de dormir', k: 115, p: 8, items: ['250 ml de lait (ou 150 g de fromage blanc)'],
+    how: 'Des protéines qui nourrissent le muscle pendant la nuit.'},
+];
+const RECIPES = [
+  ['Midi ou soir', 'Poulet curry-coco + riz', 'Poulet, oignon, curry, 50 ml de lait de coco léger (à la place de l\'huile), légumes, 120 g de riz.'],
+  ['Midi ou soir', 'Chili con carne', 'Bœuf 5 %, tomates concassées, 100 g de haricots rouges en plus, épices, 100 g de riz au lieu de 120.'],
+  ['Midi ou soir', 'Bolognaise maison', 'Bœuf 5 %, sauce tomate, carottes et oignons, 120 g de pâtes, parmesan râpé (10 g).'],
+  ['Midi ou soir', 'Saumon au four + pommes de terre', '140 g de saumon, 500 g de pommes de terre, haricots verts, sans huile.'],
+  ['Midi ou soir', 'Wok poulet-légumes', 'Poulet, légumes sautés, sauce soja, 120 g de nouilles ou de riz.'],
+  ['Midi ou soir', 'Hachis parmentier', 'Bœuf 5 % + purée de 500 g de pommes de terre au lait, un peu de gruyère.'],
+  ['Midi ou soir', 'Omelette complète', '4 œufs, champignons, 150 g de pain complet, salade + 1 c. à soupe d\'huile.'],
+  ['Matin', 'Pancakes avoine', '80 g de flocons mixés + 2 œufs + 150 ml de lait + 1 banane écrasée, cuits à la poêle. Beurre de cacahuète dessus.'],
+  ['Matin', 'Petit-déj salé', '3 œufs brouillés, 100 g de pain complet, 1 fruit, 1 verre de lait.'],
+  ['Collation', 'Shake maison', '300 ml de lait, 1 banane, 30 g de flocons, 20 g de beurre de cacahuète, au mixeur.'],
+  ['Collation', 'Sandwich', '70 g de pain complet, 2 tranches de jambon ou de poulet, 1 portion de fromage, 1 fruit.'],
+];
+const SWAPS = [
+  ['Féculents', '120 g de riz, pâtes, semoule ou quinoa (cru) = 500 g de pommes de terre = 200 g de pain complet'],
+  ['Protéines', '150 g de poulet ou dinde (cru) = 125 g de bœuf 5 % = 170 g de poisson blanc = 140 g de saumon (sans huile) = 4 œufs = 2 boîtes de thon (2–3 fois/sem. max)'],
+  ['Laitages', '200 g de skyr = 250 g de fromage blanc 0 % = 1 dose de whey (30 g) + 1 verre de lait'],
+  ['Gras', '10 g d\'huile = 15 g d\'amandes ou de noix = 15 g de beurre de cacahuète'],
+];
+const SHOP = [
+  ['Flocons d\'avoine', '600 g'], ['Lait demi-écrémé', '4 L'], ['Bananes', '7'], ['Beurre de cacahuète 100 %', '150 g (1 pot / 2 sem.)'],
+  ['Riz', '850 g'], ['Pâtes', '850 g'], ['Blanc de poulet', '1,05 kg'], ['Bœuf haché 5 %', '650 g'], ['Saumon', '280 g (2 pavés)'],
+  ['Légumes frais ou surgelés', '2,8 kg'], ['Skyr nature', '1,4 kg'], ['Fruits', '7'], ['Amandes', '175 g'], ['Huile d\'olive', '≈ 150 ml'],
+  ['Créatine monohydrate', '1 pot de 300 g ≈ 2–3 mois'],
+];
+function weightSave() {
+  const v = parseFloat(String($('#wkg')?.value || '').replace(',', '.'));
+  if (!(v > 30 && v < 250)) return toast('Entre ton poids en kg, par ex. 55,4');
+  const day = $('#wday')?.value || isoDay(new Date());
+  S.weights = S.weights || {}; S.weights[day] = Math.round(v * 10) / 10;
+  save(); render(); toast('Poids enregistré');
+}
+function weightWeeks() {
+  const W = S.weights || {}, by = new Map();
+  for (const [day, kg] of Object.entries(W)) { const k = isoDay(mondayOf(new Date(day + 'T12:00'))); (by.get(k) || by.set(k, []).get(k)).push(kg); }
+  return [...by.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([k, a]) => ({monday: k, n: a.length, avg: a.reduce((x, y) => x + y, 0) / a.length}));
+}
+const kgf = (x, d = 1) => x.toLocaleString('fr-FR', {minimumFractionDigits: d, maximumFractionDigits: d});
+function vPlan() {
+  const W = S.weights || {}, days = Object.keys(W).sort(), weeks = weightWeeks();
+  const first = days.length ? {day: days[0], kg: W[days[0]]} : null;
+  const base = first ? first.kg : PLAN_START_KG, baseDay = first ? new Date(first.day + 'T12:00') : new Date(progState().start + 'T12:00');
+  const target = base + Math.max(0, (Date.now() - baseDay) / 864e5 / 30.44);
+  const rows = weeks.slice().reverse().slice(0, 10).map((w, i, arr) => {
+    const prev = arr[i + 1], dlt = prev ? w.avg - prev.avg : null;
+    const tag = dlt == null ? '' : dlt < .15 ? '<span class="tag slow">Trop lent</span>' : dlt > .4 ? '<span class="tag fast">Trop rapide</span>' : '<span class="tag ok">Parfait</span>';
+    return `<tr><td>${esc(fmtDate(new Date(w.monday + 'T12:00'), {day: 'numeric', month: 'short'}))}</td><td class="r"><b>${kgf(w.avg)} kg</b> <span class="muted small">(${w.n} pesée${w.n > 1 ? 's' : ''})</span></td>
+      <td class="r">${dlt == null ? '—' : (dlt >= 0 ? '+' : '') + kgf(dlt, 2)}</td><td class="r">${tag}</td></tr>`;
+  }).join('');
+  const last = days.slice(-5).reverse().map(d => `<span class="chipinfo">${esc(fmtDate(new Date(d + 'T12:00'), {weekday: 'short', day: 'numeric'}))} · ${kgf(W[d])} kg
+    <button class="btn ghost" style="min-height:32px;padding:2px 8px;margin-left:4px" data-act="wdel" data-day="${d}" title="Supprimer cette pesée">✕</button></span>`).join(' ');
+  const start = new Date(progState().start + 'T12:00');
+  const months = Array.from({length: 13}, (_, i) => { const d = new Date(start.getFullYear(), start.getMonth() + i, Math.min(start.getDate(), 28));
+    return `<tr><td>${esc(fmtDate(d, {month: 'long', year: 'numeric'}))}</td><td class="r"><b>${kgf(base + i, 0)} kg</b></td></tr>`; }).join('');
+
+  return `<p class="kicker">Ton plan · objectif +1 kg par mois</p><h1>Mon plan</h1>
+  <div class="stats">
+    <div class="stat"><span class="small">Calories / jour</span><b>2 550</b></div>
+    <div class="stat"><span class="small">Protéines</span><b>120–150 g</b></div>
+    <div class="stat"><span class="small">Glucides · lipides</span><b>330 · 70 g</b></div>
+    <div class="stat"><span class="small">Poids visé</span><b>+0,25 kg</b><span class="small">par semaine</span></div>
+  </div>
+  <div class="card"><ul class="exlist">
+    <li><span class="n">💧 Eau</span><span class="muted">≈ 2 L + 0,5 L par heure de sport</span></li>
+    <li><span class="n">🚶 Pas</span><span class="muted">8 000 par jour (tu es assis la journée)</span></li>
+    <li><span class="n">😴 Sommeil</span><span class="muted">garde tes 8 h et plus · séance finie 1 h avant de dormir</span></li>
+    <li><span class="n">💊 Créatine</span><span class="muted">3 à 5 g chaque jour, même les jours off</span></li>
+    <li><span class="n">⏸ Écran</span><span class="muted">toutes les heures assis : 2 min debout ou 10 squats</span></li>
+  </ul></div>
+
+  <h2>Mon poids</h2>
+  <div class="card">
+    <div class="wrow"><input class="field" id="wkg" inputmode="decimal" placeholder="55,0" aria-label="Poids du jour en kg">
+      <span class="muted">kg le</span><input class="field" type="date" id="wday" value="${isoDay(new Date())}" aria-label="Date de la pesée" style="width:auto">
+      <button class="btn primary" data-act="wsave">Enregistrer</button></div>
+    <p class="small muted" style="margin:10px 0 0">Le matin, après les toilettes, avant de manger. Ce qui compte, c'est la <b>moyenne de la semaine</b>, pas le chiffre du jour.</p>
+    ${last ? `<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px">${last}</div>` : ''}
+    <p style="margin:12px 0 0"><b>Objectif aujourd'hui : ≈ ${kgf(target)} kg</b>${weeks.length ? ` · ta moyenne cette semaine : ${kgf(weeks[weeks.length - 1].avg)} kg` : ''}</p>
+    ${rows ? `<table class="ptable" style="margin-top:10px"><thead><tr><th>Semaine du</th><th class="r">Moyenne</th><th class="r">Écart</th><th class="r"></th></tr></thead><tbody>${rows}</tbody></table>` : ''}
+  </div>
+  <div class="banner">⚖️ <b>Règle de réglage</b> : compare chaque semaine à la précédente.<br>
+    <b>Moins de +0,15 kg</b> pendant 2 semaines → <b>+150 kcal</b> (un verre de lait ou 1 c. à soupe d'huile en plus).<br>
+    <b>Plus de +0,4 kg</b> pendant 2 semaines → <b>−150 kcal</b>.<br>
+    Les 2 premières semaines, le poids monte vite (eau, créatine) : ne change rien avant la semaine 3.</div>
+
+  <h2>Ma journée</h2>
+  <div class="card"><ul class="exlist">
+    <li><span class="n" style="flex:0 0 58px">07:30</span><span>Lever, toilettes, <b>pesée</b>.</span></li>
+    ${MEALS.map(m => `<li><span class="n" style="flex:0 0 58px">${m.t}</span><span><b>${esc(m.name)}</b></span></li>`).join('')}
+    <li><span class="n" style="flex:0 0 58px">13:00</span><span>Marche 10–15 min après le déjeuner.</span></li>
+    <li><span class="n" style="flex:0 0 58px">17:30</span><span><b>Séance</b> (lun, mar, jeu, ven) ou cardio (mer, sam). L'heure n'a pas d'importance, garde juste toujours la même.</span></li>
+    <li><span class="n" style="flex:0 0 58px">23:00</span><span>Coucher. Café seulement avant 14 h.</span></li>
+  </ul></div>
+
+  <h2>Mes repas</h2>
+  <p class="muted small">Total ≈ 2 600 kcal et 155 g de protéines. Les jours de séance et les jours off, tu manges la même chose.</p>
+  ${MEALS.map(m => `<div class="card meal"><h3>${esc(m.name)}</h3><div class="muted small">${m.t} · ≈ ${m.k} kcal · ${m.p} g de protéines</div>
+    <ul>${m.items.map(x => `<li>${esc(x)}</li>`).join('')}</ul><p class="small muted" style="margin:8px 0 0">${esc(m.how)}</p></div>`).join('')}
+
+  <details class="card"><summary>🍳 Idées de plats (mêmes quantités)</summary>
+    <table class="ptable" style="margin-top:10px"><tbody>${RECIPES.map(([w, n, d]) => `<tr><td><b>${esc(n)}</b><br><span class="muted small">${esc(w)}</span></td><td class="small">${esc(d)}</td></tr>`).join('')}</tbody></table></details>
+  <details class="card"><summary>🔁 Remplacer un aliment</summary>
+    <table class="ptable" style="margin-top:10px"><tbody>${SWAPS.map(([a, b]) => `<tr><td><b>${esc(a)}</b></td><td class="small">${esc(b)}</td></tr>`).join('')}</tbody></table></details>
+  <details class="card"><summary>🛒 Courses pour 7 jours</summary>
+    <table class="ptable" style="margin-top:10px"><tbody>${SHOP.map(([a, b]) => `<tr><td>${esc(a)}</td><td class="r"><b>${esc(b)}</b></td></tr>`).join('')}</tbody></table>
+    <p class="small muted" style="margin:10px 0 0"><b>Le dimanche :</b> cuis le riz, le poulet et les légumes pour 3 jours (boîtes au frigo), et refais-le le mercredi.</p></details>
+
+  <h2>À côté des séances</h2>
+  <div class="card"><ul class="exlist">
+    <li><span class="n">Échauffement</span><span class="muted">5 min de cardio léger + gainage latéral, bird-dog, curl-up (protège le dos)</span></li>
+    <li><span class="n">Cardio mer. et sam.</span><span class="muted">25 min de marche rapide en côte ou de vélo. 40 min dès février, 4 × 4 min de fractionné 1 fois/sem. dès avril</span></li>
+    <li><span class="n">Pas de barre ?</span><span class="muted">Rowing un bras à la place des tractions. Achat conseillé : barre de traction de porte (~25 €), puis un banc</span></li>
+    <li><span class="n">Haltères trop légers</span><span class="muted">À la maison : plus de répétitions, descente en 3–4 s, pause de 1 s en bas</span></li>
+  </ul></div>
+
+  <details class="card"><summary>📅 Chaque mois : objectifs de poids</summary>
+    <p class="small muted" style="margin:10px 0 6px">Chaque mois : photos (face, profil, dos), tour de taille, tour de bras. Tant que le tour de taille monte de moins de 1 cm pour 2 kg pris, c'est surtout du muscle.</p>
+    <table class="ptable"><tbody>${months}</tbody></table></details>
+
+  <details class="card"><summary>💊 Compléments et santé</summary><ul class="small" style="margin:10px 0 0;padding-left:18px">
+    <li><b>Créatine monohydrate</b> 3 à 5 g/jour : le complément le mieux prouvé. +1 à 2 kg d'eau dans le muscle au début, c'est normal.</li>
+    <li><b>Whey</b> : pratique si tu manques de temps, pas obligatoire.</li>
+    <li><b>Vitamine D</b> de novembre à mars : demande un dosage à ton médecin.</li>
+    <li><b>Inutile ou dangereux</b> : boosters de testostérone, brûleurs de graisse, gainers sucrés. <b>Stéroïdes et SARMs : non.</b></li>
+    <li><b>Médecin, une fois</b> : avec un IMC sous 17,5, vérifie que rien ne t'empêche de grossir (thyroïde, digestion). Puis une prise de sang chaque année.</li>
+    <li><b>Arrête-toi et consulte</b> si tu as une douleur dans la poitrine, un malaise, une articulation qui gonfle, une douleur qui descend dans la jambe, ou des urines très foncées après une séance.</li>
+  </ul></details>`;
+}
+
 /* ---------- Stats : durée et poids soulevé par semaine / mois / année ---------- */
 // une seule série par graphique → pas de légende, le titre dit ce qui est tracé ;
 // Durée en Violet, Poids en Ochre (contraste 2,99:1 sur la carte → vue tableau + étiquette du max)
@@ -1611,6 +1774,8 @@ document.addEventListener('click', ev => {
     case 'stnow': ST.off = 0; return render();
     case 'stlast': ST.off = offToLast(); return render();
     case 'pstart': return startProg(d.key);
+    case 'wsave': return weightSave();
+    case 'wdel': { delete (S.weights || {})[d.day]; save(); return render(); }
     case 'pmark': { const P = progState(); P.done[d.key] ? delete P.done[d.key] : P.done[d.key] = 'manuel'; save(); return render(); }
     case 'pweek': openWeek = +d.w; return render();
     case 'rtoggle': openRt.has(d.id) ? openRt.delete(d.id) : openRt.add(d.id); return render();
