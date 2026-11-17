@@ -295,6 +295,40 @@ table.data td:not(:first-child),table.data th:not(:first-child){text-align:right
   .clock{font-size:40px}
 }
 /* barre du bas à 6–7 onglets : noms courts sur les téléphones étroits pour qu'aucun ne soit coupé */
+/* Savoir : fiches et principes */
+#modal .box{max-height:calc(100dvh - 32px);overflow-y:auto}
+.fiche-d{margin:10px 0 4px;border-top:1px solid var(--line)}
+.fiche-d>summary{min-height:44px;display:flex;align-items:center;font-weight:700;cursor:pointer;list-style:none;font-size:15px}
+.fiche-d>summary::-webkit-details-marker{display:none}
+.fiche-d>summary::after{content:"▾";margin-left:8px;color:var(--muted)}
+.fiche-d[open]>summary::after{content:"▴"}
+.fiche{font-size:14.5px;line-height:1.5}
+.fiche p{margin:8px 0}
+.fiche ul{margin:4px 0 8px;padding-left:20px}
+.fiche li{margin:3px 0}
+.fiche .fh,.fh{font-weight:800;margin:12px 0 2px}
+.fiche .debat{background:var(--yolk-soft);border-radius:12px;padding:10px 12px}
+.fiche .src{font-size:13px;color:var(--muted)}
+.lvl{font-size:12px;letter-spacing:1px;white-space:nowrap;color:var(--coal)}
+details.princ>summary>span:first-child{flex:1}
+details.princ p{margin:10px 0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0}
+.chip{display:inline-block;border-radius:14px;padding:3px 10px;font-size:12.5px;font-weight:700;line-height:1.4;max-width:100%;min-width:0;white-space:normal;overflow-wrap:anywhere}
+.chip.ok{background:var(--moss-soft);color:var(--coal)}
+.chip.nu{background:var(--yolk-soft);color:var(--coal)}
+.chip.ko{background:#ffd9c7;color:var(--coal)}
+.nuance p{font-size:14px}
+.days li{flex-direction:column;gap:6px}
+.days .fl{display:flex;flex-wrap:wrap;gap:6px}
+.fbtn{min-height:40px;padding:6px 12px;font-size:13.5px;white-space:normal;text-align:left}
+.scrollx{overflow-x:auto}
+.debats{min-width:620px}
+.debats td{font-size:13.5px}
+ul.legend{list-style:none;margin:8px 0;padding:0;font-size:14px}
+ul.legend li{display:flex;gap:12px;align-items:baseline;padding:6px 0;border-top:1px solid var(--line)}
+ul.legend .lvl{flex:0 0 3.2em}
+ul.lib{margin:4px 0 10px;padding-left:18px;font-size:14px}
+ul.lib li{margin:4px 0}
 @media (max-width:440px){ nav .lbl[data-short]{font-size:0} nav .lbl[data-short]::after{content:attr(data-short);font-size:10.5px} }
 /* très petits téléphones (≤ 380 px) : on resserre sans rien cacher */
 @media (max-width:380px){
@@ -318,7 +352,8 @@ table.data td:not(:first-child),table.data th:not(:first-child){text-align:right
     <button data-go="session"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 13V9M10 2h4"/></svg><span class="lbl">Séance</span><span class="dot" hidden></span></button>
     <button data-go="program"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span class="lbl" data-short="Prog.">Programme</span></button>
     <button data-go="plan"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M17 21V3c-2 1-3 4-3 7h3"/></svg><span class="lbl">Plan</span></button>
-    <button data-go="routines"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg><span class="lbl">Routines</span></button>
+    <button data-go="savoir"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5V5a2 2 0 0 1 2-2h14v15H6a2 2 0 0 0-2 2 2 2 0 0 0 2 2h14"/><path d="M9 7h7M9 11h5"/></svg><span class="lbl">Savoir</span></button>
+    <button data-go="routines"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg><span class="lbl" data-short="Rout.">Routines</span></button>
     <button data-go="stats"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 20v-8M12 20V6M18 20v-6"/></svg><span class="lbl">Stats</span></button>
     <button data-go="history"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg><span class="lbl" data-short="Histo.">Historique</span></button>
   </nav>
@@ -719,7 +754,7 @@ function render() {
     b.classList.toggle('on', b.dataset.go === view);
     const dot = b.querySelector('.dot'); if (dot) dot.hidden = !(b.dataset.go === 'session' && S.active);
   });
-  $('#view').innerHTML = ({home: vHome, session: vSession, program: vProgram, plan: vPlan, stats: vStats, routines: vRoutines, history: vHistory})[view]();
+  $('#view').innerHTML = ({home: vHome, session: vSession, program: vProgram, plan: vPlan, savoir: vSavoir, stats: vStats, routines: vRoutines, history: vHistory})[view]();
   $('#exnames').innerHTML = [...new Set([...S.routines.flatMap(r => r.exercises.map(e => e.name)), ...allSessions().flatMap(s => s.ex.map(e => e.name))])]
     .sort((a, b) => a.localeCompare(b, 'fr')).map(n => `<option value="${esc(n)}">`).join('');
   tick();
@@ -1152,6 +1187,7 @@ function exCard(e, ei, a) {
         <button class="btn ghost" data-act="exup" data-e="${ei}" title="Monter">↑</button>
         <button class="btn ghost" data-act="exdel" data-e="${ei}" title="Retirer l'exercice">🗑</button></div>
     </div>
+  ${ficheDetails(e.name)}
   <table class="sets"><thead><tr><th>Série</th><th class="prev">Précédent</th><th>kg</th><th>${t ? 'Secondes' : 'Reps'}</th><th></th></tr></thead><tbody>
   ${e.sets.map((x, si) => `<tr class="${x.done ? 'done' : ''}">
     <td class="setno" data-prev="${last && last.sets[si] ? esc(fmtSet(last.sets[si])) : ''}">${si + 1}</td>
@@ -1428,6 +1464,454 @@ function vProgram() {
 /* ---------- Plan : alimentation, poids, règles (questionnaire du 16/11/2026) ---------- */
 // Profil : H 26 ans, 178 cm, 55 kg, assis la journée, gros appétit, mange de tout, aime cuisiner, objectif +1 kg/mois.
 const PLAN_START_KG = 55;
+/* ---------- Savoir : fiches d'exercices et principes, tirés des livres de Downloads\muscu ----------
+   Pages : celles du fichier PDF (p.) ; « éd. papier » quand l'EPUB donne la page du livre ; sinon le chapitre. */
+const BOOKS = {
+  delavier: {s: 'Delavier', a: 'F. Delavier', t: 'Guide des mouvements de musculation (5e éd.)', y: 2010, g: 'ana', r: 'Les fiches de chaque mouvement, les muscles qui travaillent, la morphologie.'},
+  contreras: {s: 'Contreras (Bodyweight)', a: 'B. Contreras', t: 'Bodyweight Strength Training Anatomy (2e éd.)', y: 2025, g: 'ana', r: 'Exécution et erreurs pour les pompes, fentes, leg curl glissé, gainage latéral.'},
+  glutelab: {s: 'Glute Lab', a: 'B. Contreras & G. Cordoza', t: 'Glute Lab', y: 2019, g: 'ent', r: 'Technique du hip thrust ; étirement long et dommages musculaires.'},
+  neumann: {s: 'Neumann', a: 'D. Neumann', t: 'Kinesiology of the Musculoskeletal System (3e éd.)', y: 2018, g: 'ana', r: 'La biomécanique de l\'épaule et du coude (chef long du triceps).'},
+  floyd: {a: 'R. T. Floyd', t: 'Manual of Structural Kinesiology', y: 2026, g: 'ana', r: 'Quel muscle produit quel mouvement : sert à vérifier les « muscles travaillés ».'},
+  kendall: {s: 'Kendall', a: 'F. Kendall et al.', t: 'Muscles: Testing and Function (5e éd.)', y: 2005, g: 'ana', r: 'Posture et tests musculaires.'},
+  kapandji: {a: 'I. A. Kapandji', t: 'Fisiologia articolare (3 tomes)', y: 2002, g: 'ana', r: 'La mécanique des articulations (en italien).'},
+  calais: {a: 'B. Calais-Germain', t: 'Anatomie pour le mouvement (tomes 1 et 2)', y: 2005, g: 'ana', r: 'L\'anatomie vue sous l\'angle du geste.'},
+  myers: {a: 'T. Myers', t: 'Anatomy Trains', y: 0, g: 'ana', r: 'Les chaînes myofasciales ; une hypothèse encore discutée.'},
+  biel: {a: 'A. Biel', t: 'Trail Guide to the Body (6e éd.)', y: 2019, g: 'ana', r: 'Repérer chaque muscle au toucher.'},
+  atlas: {s: 'Atlas', a: 'Netter · Gray · Kapit', t: 'Atlas d\'anatomie, Gray\'s pour étudiants, Anatomy Coloring Book', y: 2020, g: 'ana', r: 'Les références d\'anatomie pure : on y vérifie, on n\'y apprend pas à s\'entraîner.'},
+  kaminoff: {a: 'L. Kaminoff', t: 'Yoga Anatomy', y: 2007, g: 'ana', r: 'La respiration et la mobilité.'},
+  helms: {s: 'Helms', a: 'E. Helms et al.', t: 'The Muscle & Strength Pyramid: Training (v2)', y: 2018, g: 'ent', r: 'Le résumé le plus net des preuves : volume, intensité, fréquence, repos, tempo.'},
+  rp: {s: 'Israetel (RP)', a: 'M. Israetel et al.', t: 'Scientific Principles of Hypertrophy Training', y: 2021, g: 'ent', r: 'Le ratio stimulus / fatigue, la plage de 5 à 30 reps, la tension en étirement.'},
+  zatsiorsky: {s: 'Zatsiorsky', a: 'V. Zatsiorsky, W. Kraemer, A. Fry', t: 'Science and Practice of Strength Training (3e éd.)', y: 2020, g: 'ent', r: 'La théorie fitness-fatigue et les 3 façons d\'obtenir une tension maximale.'},
+  nsca: {s: 'NSCA', a: 'G. Haff (NSCA)', t: 'Essentials of Strength Training and Conditioning (5e éd.)', y: 2026, g: 'ent', r: 'Le manuel des préparateurs : technique, consignes, temps de repos.'},
+  bompa: {s: 'Bompa', a: 'T. Bompa & C. Buzzichelli', t: 'Periodization of Strength Training for Sports (4e éd.)', y: 2021, g: 'ent', r: 'La périodisation en blocs ; force et endurance peuvent cohabiter.'},
+  supertraining: {s: 'Verkhoshansky', a: 'Y. Verkhoshansky & M. Siff', t: 'Supertraining (6e éd.)', y: 2009, g: 'ent', r: 'La somme de l\'école soviétique, plus utile pour l\'histoire des idées que pour toi aujourd\'hui.'},
+  rippetoe: {s: 'Rippetoe', a: 'M. Rippetoe & A. Baker', t: 'Practical Programming (3e éd.) · Starting Strength (3e éd.)', y: 2014, g: 'ent', r: 'L\'« effet débutant » : au début, presque tout marche.'},
+  wendler: {a: 'J. Wendler', t: '5/3/1', y: 2012, g: 'ent', r: '« Commence trop léger » : la progression lente dure plus longtemps.'},
+  arnold: {a: 'A. Schwarzenegger', t: 'Encyclopédie du bodybuilding (éd. chinoise)', y: 2012, g: 'ent', r: 'Scan en chinois, non exploité.'},
+  starrett: {s: 'Starrett', a: 'K. Starrett & G. Cordoza', t: 'Becoming a Supple Leopard (2e éd.)', y: 2015, g: 'ent', r: 'Créer de la tension en « vissant » mains et pieds dans le sol.'},
+  mcgill: {s: 'McGill', a: 'S. McGill', t: 'Back Mechanic', y: 2017, g: 'ent', r: 'Le « Big 3 » du dos, la charnière de hanche, le portage en valise.'},
+  wilmore: {s: 'Wilmore & Costill', a: 'Kenney, Wilmore & Costill', t: 'Physiologie du sport et de l\'exercice', y: 2021, g: 'phy', r: 'Les premiers gains de force sont nerveux avant d\'être musculaires.'},
+  mcardle: {s: 'McArdle', a: 'McArdle, Katch & Katch', t: 'Exercise Physiology (8e éd.)', y: 2014, g: 'phy', r: 'La physiologie de l\'énergie à l\'effort (manuel de référence).'},
+  guyton: {s: 'Guyton & Hall', a: 'J. Hall', t: 'Guyton & Hall Physiology Review', y: 2020, g: 'phy', r: 'La physiologie médicale, pour vérifier un mécanisme.'},
+  brooks: {a: 'G. Brooks et al.', t: 'Exercise Physiology: Human Bioenergetics', y: 2004, g: 'phy', r: 'La bioénergétique.'},
+  lieberman: {s: 'Lieberman', a: 'D. Lieberman', t: 'Exercised · The Story of the Human Body', y: 2020, g: 'phy', r: 'Le point de vue de l\'évolution : nos ancêtres étaient minces et assez forts, pas massifs.'},
+  pontzer: {s: 'Pontzer', a: 'H. Pontzer', t: 'Burn', y: 2021, g: 'phy', r: 'La dépense d\'énergie « contrainte » : bouger plus ne brûle pas autant qu\'on le calcule.'},
+  hutchinson: {s: 'Hutchinson', a: 'A. Hutchinson', t: 'Endure', y: 2018, g: 'phy', r: 'La perception de l\'effort, ce qui fixe la limite de l\'endurance.'},
+  aschwanden: {s: 'Aschwanden', a: 'C. Aschwanden', t: 'Good to Go', y: 2019, g: 'phy', r: 'L\'enquête sur la récupération : la glace et les antioxydants peuvent freiner l\'adaptation.'},
+  bryson: {a: 'B. Bryson', t: 'The Body', y: 2019, g: 'phy', r: 'De la culture générale sur le corps.'},
+  aragon: {s: 'Aragon', a: 'A. Aragon', t: 'Flexible Dieting', y: 2022, g: 'nut', r: 'Les protéines de 1,6 à 2,2 g/kg, et 80–90 % d\'aliments peu transformés.'},
+  norton: {s: 'Norton', a: 'L. Norton & P. Baker', t: 'Fat Loss Forever', y: 2018, g: 'nut', r: 'L\'adhérence et les régimes ; surtout utile pour une future sèche.'},
+  rpdiet: {s: 'Israetel (RP Diet)', a: 'M. Israetel et al.', t: 'The Renaissance Diet 2.0', y: 2020, g: 'nut', r: 'Prise de masse : 0,25 à 0,5 % du poids par semaine, pendant 6 à 16 semaines.'},
+  lyon: {s: 'Lyon', a: 'G. Lyon', t: 'Forever Strong · Les muscles, votre plus grande force vitale', y: 2023, g: 'nut', r: 'Le muscle vu comme un organe de santé ; défend le seuil de leucine par repas.'},
+  benardot: {s: 'Benardot', a: 'D. Benardot', t: 'Advanced Sports Nutrition (2e éd.)', y: 2012, g: 'nut', r: 'Répartir l\'énergie dans la journée pour éviter les gros déficits horaires.'},
+  clark: {a: 'N. Clark', t: 'Sports Nutrition Guidebook (6e éd.)', y: 2019, g: 'nut', r: 'La nutrition sportive au quotidien.'},
+  krause: {s: 'Krause', a: 'Mahan & Raymond', t: 'Krause\'s Food & the Nutrition Care Process (14e éd.)', y: 2016, g: 'nut', r: 'Le manuel de diététique clinique.'},
+  gleeson: {s: 'Gleeson', a: 'M. Gleeson & A. Jeukendrup', t: 'Sport Nutrition (3e éd.)', y: 2019, g: 'nut', r: 'Fichier incomplet (téléchargement interrompu) : non lu.'},
+  riche: {a: 'D. Riché', t: 'Épinutrition', y: 2022, g: 'nut', r: 'L\'alimentation qui agit sur l\'expression des gènes.'},
+  enders: {a: 'G. Enders', t: 'Le Charme discret de l\'intestin', y: 2017, g: 'nut', r: 'La digestion et le microbiote.'},
+  guyenet: {s: 'Guyenet', a: 'S. Guyenet', t: 'The Hungry Brain', y: 2017, g: 'nut', r: 'La « récompense alimentaire » : on mange plus ce qui est bon, dense et varié.'},
+  pollan: {s: 'Pollan', a: 'M. Pollan', t: 'In Defense of Food', y: 2008, g: 'nut', r: '« Eat food. Not too much. Mostly plants. »'},
+  spector: {s: 'Spector', a: 'T. Spector', t: 'Spoon-Fed', y: 2020, g: 'nut', r: 'Les idées reçues en nutrition, les aliments ultra-transformés.'},
+  nestle: {a: 'M. Nestle', t: 'What to Eat Now', y: 2025, g: 'nut', r: 'Comment l\'industrie façonne ce qu\'on mange.'},
+  attia: {s: 'Attia', a: 'P. Attia', t: 'Outlive', y: 2025, g: 'san', r: 'VO2max, force et poigne comme marqueurs de longévité ; la marche du fermier.'},
+  walker: {s: 'Walker', a: 'M. Walker', t: 'Pourquoi nous dormons', y: 2018, g: 'san', r: 'Manquer de sommeil fait chuter la testostérone.'},
+  sapolsky: {s: 'Sapolsky', a: 'R. Sapolsky', t: 'Why Zebras Don\'t Get Ulcers (3e éd.)', y: 2004, g: 'san', r: 'Le stress chronique et les glucocorticoïdes.'},
+  dopamine: {s: 'Lieberman & Long', a: 'D. Lieberman & M. Long', t: 'Dopamine', y: 2024, g: 'san', r: 'Le désir et la satisfaction, utile pour comprendre la motivation.'},
+  schoenfeld: {a: 'B. Schoenfeld', t: 'Science and Development of Muscle Hypertrophy (2e éd.)', y: 2020, g: 'ent', r: 'Format .lit illisible ici : à reconvertir (Calibre) pour l\'exploiter.'},
+};
+const BOOK_GROUPS = {ana: 'Anatomie et biomécanique', ent: 'Entraînement', phy: 'Physiologie et évolution', nut: 'Nutrition', san: 'Santé, sommeil, esprit'};
+const LVL = {3: ['●●●', 'Solide : les manuels et les revues d\'études sont d\'accord'], 2: ['●●○', 'Probable : bon accord entre praticiens, peu d\'études directes'], 1: ['●○○', 'Hypothèse : plausible mais encore discuté']};
+const src = (k, p) => [k, p || ''];
+
+// [nom exact de l'exercice] → fiche
+const FICHES = {
+  'Développé couché (haltère)': {lvl: 3,
+    why: 'Le grand exercice de poussée du haut du corps : pectoraux, triceps, avant des épaules. Pousser fort, c\'est aussi se relever du sol, repousser quelqu\'un ou amortir une chute.',
+    meca: 'Avec des haltères, les mains descendent plus bas qu\'avec une barre : les pectoraux s\'étirent plus sous la charge. Chaque bras travaille seul, ce qui révèle et corrige un côté plus faible.',
+    cues: ['5 points d\'appui : tête, haut du dos, fesses, pied gauche, pied droit', 'Omoplates serrées et basses, comme si tu les rangeais dans tes poches arrière', 'Coudes à environ 45° du buste, avant-bras verticaux sous les haltères', 'Descends jusqu\'à sentir la poitrine s\'étirer, puis pousse en rapprochant les haltères'],
+    err: ['Coudes écartés à 90° : l\'épaule encaisse au lieu du pectoral', 'Fesses qui décollent du banc', 'Rebond en bas de la descente'],
+    home: 'Sans banc, fais un floor press au sol. L\'amplitude est plus courte (les coudes touchent le sol) : marque 1 s de pause coudes posés et ajoute des répétitions.',
+    debat: 'Le dos très cambré des powerlifters (Delavier, p. 64) raccourcit le trajet pour soulever plus lourd. C\'est utile en compétition, pas pour ton but : garde seulement la petite cambrure naturelle.',
+    src: [src('delavier', 'p. 76 et 64'), src('nsca', 'p. 951'), src('contreras', 'p. 44 (angle des coudes)')]},
+  'Floor press (haltère)': {lvl: 2,
+    why: 'C\'est la version « sans banc » du développé couché, pour la maison. Même muscles, trajet plus court.',
+    meca: 'Le sol arrête les coudes avant que l\'épaule ne parte loin en arrière, ce qui épargne l\'avant de l\'épaule. Delavier propose une idée proche (coudes le long du corps) pour continuer à pousser quand l\'épaule est sensible.',
+    cues: ['Genoux pliés, pieds à plat', 'Pose les coudes au sol 1 s sans relâcher, puis pousse', 'Coudes à 45°, pas en croix'],
+    err: ['Laisser tomber les coudes au sol', 'Pousser en cambrant'],
+    home: 'L\'amplitude étant réduite, vise 2 reps de plus que prévu ou une descente en 3 s.',
+    debat: 'On perd l\'étirement du bas du mouvement (voir le principe « Amplitude »). C\'est pourquoi à la salle tu reprends le banc.',
+    src: [src('delavier', 'p. 37'), src('rp', 'tension en étirement')]},
+  'Rowing penché avec haltères': {lvl: 3,
+    why: 'Un dos épais équilibre toute la poussée, garde les épaules en place et compense les heures assis.',
+    meca: 'Buste penché à environ 45°, dos plat : grand dorsal, grand rond, arrière des épaules, rhomboïdes et trapèzes en fin de tirage. Les muscles du bas du dos tiennent la position sans bouger : c\'est aussi un exercice de charnière de hanche.',
+    cues: ['Fesses en arrière, genoux souples, dos plat (la charnière de hanche de McGill)', 'Inspire et serre le ventre avant de tirer', 'Tire les coudes vers les hanches, pas les mains vers la poitrine', 'Serre les omoplates 1 s en haut'],
+    err: ['Le buste qui se relève à chaque rep pour donner de l\'élan', 'Le dos qui s\'arrondit quand la fatigue arrive', 'Les épaules qui montent vers les oreilles'],
+    home: 'Si le bas du dos lâche avant le haut du dos, passe au rowing un bras, main et genou sur une chaise.',
+    debat: 'Delavier note qu\'en changeant l\'inclinaison du buste, on change la partie du dos qui travaille le plus. Garde le même angle d\'une séance à l\'autre pour pouvoir comparer tes charges.',
+    src: [src('delavier', 'p. 97'), src('mcgill', 'p. 68')]},
+  'Rowing un bras (haltère)': {lvl: 3,
+    why: 'Il remplace les tractions quand tu n\'as pas de barre et soulage le bas du dos par rapport au rowing penché.',
+    meca: 'Main et genou opposés en appui : grand dorsal, grand rond et arrière d\'épaule, puis trapèze et rhomboïde en fin de tirage. Les fléchisseurs du bras aident.',
+    cues: ['Prise marteau (pouce vers l\'avant)', 'Coude tiré bien en arrière, le long du corps', 'Une légère rotation du buste en fin de tirage est permise, pas au début'],
+    err: ['Tirer avec le biceps (le coude part vers l\'extérieur)', 'Tourner le buste dès le départ'],
+    home: 'Chaise ou canapé à la place du banc. Trop léger : pause 2 s en haut.',
+    debat: 'La petite torsion finale que Delavier autorise augmente la contraction ; trop grande, elle remplace le travail du dos par de l\'élan.',
+    src: [src('delavier', 'p. 96')]},
+  'Développé militaire (haltère)': {lvl: 3,
+    why: 'Pousser au-dessus de la tête rend les épaules solides dans toute leur amplitude. Debout, tout le tronc doit gainer.',
+    meca: 'Deltoïde (surtout la partie moyenne), trapèze, dentelé antérieur, triceps. L\'espace sous l\'acromion varie selon les gens : certains se pincent l\'épaule. Pousse donc devant la tête, coudes un peu vers l\'avant, jamais derrière la nuque.',
+    cues: ['Fesses et ventre serrés, côtes basses : pas de cambrure', 'Coudes un peu devant le buste, pas en croix', 'Finis bras verticaux, haltères au-dessus des oreilles'],
+    err: ['Se pencher en arrière pour finir (ça devient un développé incliné et ça charge le bas du dos)', 'Descendre à moitié'],
+    home: 'Même version debout partout. Trop léger : un bras à la fois, ou descente en 3 s.',
+    debat: 'Assis avec un dossier, on soulève un peu plus lourd et on évite de cambrer (Delavier). Debout, le tronc travaille. Ton programme garde la version debout parce qu\'elle se fait aussi chez toi.',
+    src: [src('delavier', 'p. 34 et 35')]},
+  'Traction pronation': {lvl: 3,
+    why: 'Tirer son propre poids, c\'est le test de force relative le plus simple : dos, bras et poigne. Plus tu prends de poids, plus il faut de force pour garder tes reps : c\'est un bon garde-fou contre le gras.',
+    meca: 'Grand dorsal et grand rond, puis rhomboïdes et trapèzes quand les omoplates se rapprochent. Le grand pectoral aide à ramener le bras contre le tronc.',
+    cues: ['Commence en abaissant les épaules, avant de plier les bras', 'Pense « coudes vers les poches »', 'Menton au-dessus de la barre, sans tendre le cou', 'Descends en 2 s, coudes à peine fléchis en bas'],
+    err: ['Se balancer pour s\'aider', 'Faire des demi-reps en haut', 'Rester en bas épaules aux oreilles'],
+    home: 'Sans barre : rowing un bras. Moins de 5 reps : des négatives (saute en haut, descends en 3 à 5 s) ou une traction aidée par un drap ou un élastique.',
+    debat: 'En supination (paumes vers toi), le biceps aide davantage. Les deux prises font grandir le dos : garde-en une seule pour suivre tes progrès. Delavier conseille de ne pas verrouiller les coudes en bas des longues séries, pour ménager le tendon du biceps.',
+    src: [src('delavier', 'p. 85 et 87'), src('contreras', 'p. 108 et 111')]},
+  'Élévation latérale (haltère)': {lvl: 2,
+    why: 'C\'est le seul exercice de ton programme qui vise directement le deltoïde moyen, celui qui élargit les épaules. Le muscle est petit : on travaille léger avec beaucoup de reps.',
+    meca: 'Le deltoïde moyen est penniforme (beaucoup de fibres courtes et obliques), fait pour tenir des charges. Le supra-épineux l\'aide en plaquant la tête de l\'humérus. Au-dessus de l\'horizontale, c\'est surtout le trapèze qui prend le relais.',
+    cues: ['Coudes légèrement fléchis : monte « les coudes » plutôt que les mains', 'Jusqu\'à l\'horizontale, pas plus', 'Un peu devant toi, là où ça ne pince pas'],
+    err: ['Donner de l\'élan avec le buste', 'Hausser les épaules', 'Prendre trop lourd : les trapèzes font le travail'],
+    home: 'Exercice parfait pour la maison : 15 à 20 reps, monte en 1 s, descends en 2 à 3 s.',
+    debat: 'Delavier conseille de varier le point de départ (haltères derrière, sur les côtés ou devant) pour toucher tous les faisceaux. L\'argument est anatomique, sans essai direct : c\'est une bonne idée, pas une preuve.',
+    src: [src('delavier', 'p. 41 et 35')]},
+  'Curl biceps (haltère)': {lvl: 3,
+    why: 'Les fléchisseurs du coude servent à porter et à tirer. Un biceps fort protège aussi son tendon, dont la rupture est un accident classique en soulevant lourd.',
+    meca: 'Le biceps plie le coude, mais c\'est surtout le supinateur le plus puissant du corps : il tourne la paume vers le haut. Le faire tourner en montant le fait travailler dans toutes ses fonctions.',
+    cues: ['Coudes fixes le long du corps', 'Pars en prise marteau et tourne la paume vers le haut en montant', 'Redescends jusqu\'au bras presque tendu'],
+    err: ['Balancer le buste', 'S\'arrêter à mi-course', 'Plier les poignets'],
+    home: 'Trop léger : descente en 3 s, ou alterne les bras pour garder la tension.',
+    debat: 'Le curl incliné (bras derrière le corps) étire davantage le biceps. Israetel défend la tension en étirement comme un facteur de croissance à part entière ; l\'idée est prometteuse, mais les études sont encore récentes.',
+    src: [src('delavier', 'p. 5, 7 et 105'), src('rp', 'tension en étirement')]},
+  'Curl marteau (haltère)': {lvl: 3,
+    why: 'Il fait travailler le brachial et le brachio-radial. Résultat : un avant-bras épais, une meilleure poigne et un coude plus solide.',
+    meca: 'En prise marteau, le biceps est moins avantagé : le brachio-radial fait une plus grande part du travail. Delavier le tient pour le meilleur exercice de ce muscle.',
+    cues: ['Pouces vers le haut tout le long', 'Coudes immobiles', 'Monte jusqu\'à l\'épaule, redescends complètement'],
+    err: ['Élan du buste', 'Coudes qui avancent'],
+    home: 'Même chose ; ou un bras à la fois avec pause en haut.',
+    debat: '« Fibres directes d\'abord, superficielles ensuite » : Delavier explique que l\'effort recrute progressivement plus de fibres. Plus une série approche de l\'échec, plus le muscle entier travaille. C\'est la base du principe « Effort ».',
+    src: [src('delavier', 'p. 8 et 5')]},
+  'Extension triceps (haltère)': {lvl: 2,
+    why: 'Le triceps fait environ les deux tiers du volume du bras et termine toutes les poussées.',
+    meca: 'Le chef long du triceps passe derrière l\'épaule. Bras levé au-dessus de la tête, il est étiré avant de se contracter, ce qui le fait mieux travailler.',
+    cues: ['Coudes vers le plafond, serrés', 'Abdos contractés pour ne pas cambrer', 'Descends l\'haltère bien derrière la nuque, puis tends'],
+    err: ['Coudes qui s\'écartent', 'Cambrure du bas du dos', 'Amplitude coupée en bas'],
+    home: 'Un haltère à deux mains ; trop léger : un bras à la fois.',
+    debat: 'Que l\'étirement fasse grossir davantage le chef long est plausible (mécanisme + premières études), mais pas encore établi. Le reste du triceps travaille aussi aux pompes et aux développés.',
+    src: [src('delavier', 'p. 25 et 27'), src('neumann', 'p. 223')]},
+  'Squat bulgare (haltère)': {lvl: 3,
+    why: 'Il fait travailler une jambe à la fois : quadriceps, fessiers et équilibre. Comme une seule jambe porte presque tout, des haltères légers donnent déjà un gros effort. C\'est idéal chez toi.',
+    meca: 'Grand pas, buste penché, tibia vertical : surtout les fessiers. Petit pas, buste droit, genou qui avance : surtout les quadriceps. Contreras conseille de faire la plupart des séries entre les deux.',
+    cues: ['Le poids est sur le pied avant ; le pied arrière ne sert qu\'à l\'équilibre', 'Descends le genou arrière vers le sol, en diagonale vers l\'arrière', 'Genou avant dans l\'axe des orteils', 'Commence par la jambe faible, puis repose-toi environ 1 min avant l\'autre'],
+    err: ['Pied avant trop près du support', 'Pousser avec la jambe arrière', 'Genou qui rentre vers l\'intérieur'],
+    home: 'Pied arrière sur le canapé. Trop léger : pause de 2 s en bas, ou « 1,5 rep » (tu remontes à mi-course, redescends, puis remontes en entier).',
+    debat: '« Le genou ne doit pas dépasser les orteils » est faux en règle générale : Contreras le laisse avancer pour viser les quadriceps. Ce qui compte, c\'est le genou dans l\'axe et l\'absence de douleur.',
+    src: [src('contreras', 'p. 135 (éd. papier)'), src('delavier', 'p. 155'), src('glutelab', 'étirement long')]},
+  'Fente arrière (haltère)': {lvl: 3,
+    why: 'Le même travail jambe par jambe que la fente avant, mais en reculant : le genou avant freine moins. C\'est pourquoi beaucoup de coachs la préfèrent.',
+    meca: 'Grand pas : le grand fessier de la jambe avant travaille plus, et le psoas et le droit fémoral de la jambe arrière s\'étirent. Petit pas : ce sont surtout les quadriceps.',
+    cues: ['Recule d\'un grand pas, buste légèrement penché', 'Le genou arrière effleure le sol', 'Pousse dans le talon avant pour revenir'],
+    err: ['Pas trop court qui écrase le genou avant', 'Perdre l\'équilibre en reculant : regarde un point fixe'],
+    home: 'Trop léger : pose une marche sous le pied avant (fente « en déficit », plus d\'amplitude).',
+    debat: 'Delavier conseille de démarrer léger : presque tout le poids repose sur une jambe et l\'équilibre s\'apprend.',
+    src: [src('delavier', 'p. 155 et 156'), src('contreras', 'p. 140-141 (éd. papier)')]},
+  'Goblet squat (kettlebell)': {lvl: 3,
+    why: 'C\'est le squat le plus facile à apprendre. La charge devant toi fait contrepoids et garde le buste droit. Il entretient aussi la mobilité des chevilles et des hanches.',
+    meca: 'Le squat fait travailler les quadriceps et les fessiers. Delavier estime que, pour le squat aux haltères, des charges modérées en 10 à 15 reps donnent de meilleurs résultats que du lourd.',
+    cues: ['Kettlebell collée au sternum, coudes sous la charge', 'En bas, écarte les genoux avec les coudes', 'Talons au sol, descends aussi bas que ton dos reste neutre', 'Pousse le sol pour remonter'],
+    err: ['Talons qui décollent', 'Genoux qui rentrent en remontant', 'Bas du dos qui s\'arrondit tout en bas'],
+    home: 'Kettlebell trop légère : pause de 3 s en bas, ou 1,5 rep.',
+    debat: 'Jusqu\'où descendre ? L\'inclinaison du buste et la profondeur dépendent de la longueur des fémurs et de la forme de la hanche (Delavier). Il n\'y a pas de profondeur unique : il y a la tienne, sans douleur et dos neutre.',
+    src: [src('delavier', 'p. 122 et 129')]},
+  'Soulevé de terre roumain (haltère)': {lvl: 3,
+    why: 'C\'est la charnière de hanche : ischios, fessiers et muscles du dos. C\'est le geste qui protège le dos quand tu ramasses n\'importe quoi.',
+    meca: 'Le buste bascule autour des hanches, le dos reste fixe. Les ischios travaillent en étant étirés, ce qui en fait l\'un des exercices les plus « constructeurs » pour l\'arrière des cuisses.',
+    cues: ['Pousse les fesses vers le mur derrière toi', 'Les haltères frôlent les cuisses', 'Descends tant que le dos reste plat (souvent jusqu\'à mi-tibia)', 'Remonte en serrant les fesses'],
+    err: ['Dos rond (l\'erreur n° 1 pour la NSCA)', 'Plier activement les genoux comme un squat', 'Se pencher en arrière en haut'],
+    home: 'Trop léger : descente en 3 s et 1 s d\'arrêt en bas, ou version une jambe.',
+    debat: 'Delavier écrit « dos cambré » ; McGill et la NSCA disent « rachis neutre ». Les deux veulent la même chose : ne jamais arrondir le bas du dos. « Neutre » est plus juste : on garde la courbure naturelle sans la creuser exprès.',
+    src: [src('delavier', 'p. 101'), src('nsca', 'p. 1042'), src('mcgill', 'p. 22 et 68'), src('glutelab', 'étirement long')]},
+  'Soulevé de terre roumain une jambe (haltère)': {lvl: 2,
+    why: 'Tenir la hanche stable sur un seul appui, c\'est ce qui sert pour marcher, courir et se rattraper quand on glisse. Il corrige aussi les écarts gauche/droite.',
+    meca: 'Sur une jambe, les petits fessiers (moyen fessier) doivent empêcher le bassin de tourner ou de tomber. Ischios et grand fessier font la charnière.',
+    cues: ['Haltère dans la main opposée à la jambe d\'appui', 'Bassin à plat : la hanche de la jambe libre ne s\'ouvre pas', 'Buste et jambe arrière forment une planche', 'Au début, une main contre un mur'],
+    err: ['Ouvrir la hanche en tournant le buste', 'Arrondir le dos pour descendre plus bas'],
+    home: 'Exercice parfait chez toi : la difficulté vient de l\'équilibre, pas de la charge.',
+    debat: 'Sa valeur « anti-chute » est surtout un argument de bon sens et d\'anatomie. Les essais portent plutôt sur les personnes âgées (voir le principe « Force et longévité »).',
+    src: [src('contreras', 'p. 158 (éd. papier)'), src('mcgill', 'p. 68')]},
+  'Hip thrust (haltère)': {lvl: 2,
+    why: 'Il charge les fessiers en position raccourcie (contraction maximale) sans charger le dos. C\'est l\'extension de hanche qu\'on retrouve au sprint, au saut et quand on se redresse.',
+    meca: 'Le regard reste devant toi pendant la montée, donc le menton se rentre en haut ; les côtes restent basses, ce qui bascule légèrement le bassin vers l\'arrière. Résultat : la tension va aux fessiers plutôt qu\'aux muscles du bas du dos et aux ischios.',
+    cues: ['Haut du dos sur le bord du canapé, juste sous les omoplates', 'En haut, les tibias sont verticaux', 'Menton rentré, côtes basses', 'Serre les fesses 1 à 2 s en haut'],
+    err: ['Finir en cambrant : c\'est le bas du dos qui travaille', 'Pieds trop loin (ischios) ou trop près (quadriceps)'],
+    home: 'Haltère posé sur les hanches avec une serviette pliée. Trop léger : une jambe à la fois.',
+    debat: 'Contreras a inventé et nommé l\'exercice : il est à la fois chercheur et partie prenante. Une forte activation électrique (EMG) ne prouve pas plus de croissance ; il faut des études de croissance musculaire, encore peu nombreuses. Garde-le pour ce qu\'il fait bien : charger les fessiers sans le dos.',
+    src: [src('glutelab', 'chapitres sur le hip thrust'), src('delavier', 'p. 161'), src('contreras', 'p. 186 (éd. papier)')]},
+  'Leg curl glissé': {lvl: 2,
+    why: 'Il fait plier le genou contre une résistance, ce que le soulevé de terre roumain ne fait pas. Delavier note que les déchirures des ischios sont particulièrement fréquentes en musculation.',
+    meca: 'Les ischios croisent deux articulations : ils étendent la hanche et plient le genou. Le SDT roumain les travaille par la hanche, le leg curl par le genou ; les deux se complètent.',
+    cues: ['Bassin haut, fesses serrées pendant toute la série', 'Talons sur une serviette (sur le parquet) ou en chaussettes', 'Ramène lentement, repousse encore plus lentement', 'Passe à une jambe quand 15 reps deviennent faciles'],
+    err: ['Laisser tomber le bassin', 'Aller trop vite'],
+    home: 'Trop dur : ne fais que la phase où tu repousses les talons, puis repose le bassin et recommence.',
+    debat: 'Contreras fait d\'abord travailler la descente (l\'excentrique) avant le mouvement complet. C\'est une progression de praticien, cohérente avec le fait qu\'on est plus fort en freinant qu\'en tirant.',
+    src: [src('contreras', 'p. 169-170 (éd. papier)'), src('delavier', 'p. 142')]},
+  'Mollets une jambe': {lvl: 2,
+    why: 'Des chevilles et un tendon d\'Achille solides servent pour sauter, courir et marcher longtemps.',
+    meca: 'Genou tendu, ce sont les gastrocnémiens et le soléaire qui travaillent. Genou plié, c\'est surtout le soléaire.',
+    cues: ['Talon le plus bas possible sous la marche, avec 1 s d\'étirement', 'Monte le plus haut possible, tiens 1 s', 'Lentement, sans rebond'],
+    err: ['Rebondir', 'Faire des demi-reps'],
+    home: 'Une marche d\'escalier, un haltère dans la main du côté qui travaille.',
+    debat: 'Delavier signale que chez certains (« mollets courts »), le volume progresse à peine : on gagne surtout de la force. C\'est l\'une des rares limites génétiques qu\'il pose aussi nettement. Ton but reste une cheville solide.',
+    src: [src('delavier', 'p. 149, 151 et 153')]},
+  'Marche du fermier (haltère)': {lvl: 2,
+    why: 'Elle entraîne la poigne, les trapèzes et le tronc en marchant chargé. Attia la place parmi ses exercices préférés pour la poigne.',
+    meca: 'Le tronc empêche le corps de pencher et de s\'affaisser. Les épaules restent basses et en arrière, pas relevées ni enroulées vers l\'avant.',
+    cues: ['Épaules basses et en arrière', 'Petits pas rapides, regard loin devant', 'Serre les poignées fort', 'Respire en gardant le ventre gainé'],
+    err: ['Épaules relevées', 'Pencher d\'un côté'],
+    home: 'Aller-retour dans le couloir ; ou sur place en marchant 40 s.',
+    debat: 'Dans une grande étude britannique citée par Attia, une poigne faible va avec plus de démence. Mais c\'est une corrélation : les gens en bonne santé ont aussi une bonne poigne. Rien ne prouve qu\'entraîner la poigne seule protège ; la force globale est le pari le plus raisonnable.',
+    src: [src('attia', 'chapitre sur la force'), src('mcgill', 'p. 30')]},
+  'Développé incliné (haltère)': {lvl: 3,
+    why: 'Il vise le haut des pectoraux (le faisceau sous la clavicule) et l\'avant des épaules.',
+    meca: 'Au-delà d\'environ 60° d\'inclinaison, ce sont surtout les épaules qui travaillent. Le dentelé antérieur et le petit pectoral tiennent l\'omoplate contre le buste.',
+    cues: ['Banc entre 30 et 45°', 'Omoplates serrées, comme au développé couché', 'Rapproche les haltères en montant'],
+    err: ['Banc trop redressé', 'Fesses qui glissent'],
+    home: 'Sans banc incliné : coussins calés contre le canapé, ou pompes pieds surélevés, qui visent aussi le haut des pectoraux.',
+    debat: 'Que le haut des pectoraux grossisse « à part » est appuyé par l\'anatomie (fibres orientées différemment) et par la pratique. Les mesures directes sont rares.',
+    src: [src('delavier', 'p. 78 et 75')]},
+  'Pompes lestées': {lvl: 3,
+    why: 'Pousser en gainant tout le corps. Contrairement au banc, les omoplates bougent librement : le dentelé antérieur travaille, ce qui est bon pour les épaules.',
+    meca: 'Pectoraux, triceps et avant des épaules. Les dentelés plaquent les omoplates sur les côtes.',
+    cues: ['Mains un peu plus larges que les épaules, sous les coudes', 'Bras à 45° du corps', 'Fesses et abdos serrés : corps droit des talons à la tête', '« Visse » les mains dans le sol (sans les bouger) pour stabiliser les épaules', 'La poitrine touche le sol, coudes tendus en haut'],
+    err: ['Hanches qui s\'affaissent', 'Mains trop écartées', 'Amplitude coupée'],
+    home: 'Lest : un sac à dos rempli de livres ou de bouteilles.',
+    debat: 'Pompes ou développé ? Si l\'effort est le même (proche de l\'échec), les deux construisent du muscle (principe « Plage de reps »). Le lest sert juste à rester sous 30 reps.',
+    src: [src('contreras', 'p. 44 (éd. papier)'), src('delavier', 'p. 75'), src('starrett', 'le couple de rotation')]},
+  'Oiseau / Y-raise (haltère)': {lvl: 2,
+    why: 'Il travaille l\'arrière des épaules, les trapèzes moyens et bas et les rhomboïdes : la posture, et des épaules saines quand on passe la journée assis.',
+    meca: 'Buste penché, dos plat, bras levés jusqu\'à l\'horizontale. En resserrant les omoplates à la fin, on recrute les trapèzes, le rhomboïde, le petit rond et l\'infra-épineux.',
+    cues: ['Très léger, sans élan', 'Pouces vers le haut pour le Y', 'Pause de 1 s en haut, omoplates serrées'],
+    err: ['Prendre trop lourd et donner de l\'élan', 'Hausser les épaules'],
+    home: 'Parfait chez toi : 12 à 20 reps lentes.',
+    debat: 'Kendall, le classique de la posture, relie les déséquilibres musculaires aux mauvaises postures et aux douleurs. C\'est la tradition des kinés ; les preuves qu\'un exercice corrige une posture et enlève une douleur restent discutées. Le gain sûr, c\'est la force de l\'arrière des épaules.',
+    src: [src('delavier', 'p. 40'), src('contreras', 'p. 30 (YTWL)'), src('kendall', 'préface')]},
+  'Gainage latéral': {lvl: 3,
+    why: 'C\'est l\'un des 3 exercices de base de McGill (le « Big 3 ») : il construit l\'endurance du tronc en épargnant le dos.',
+    meca: 'Obliques, carré des lombes et moyen fessier travaillent sans bouger, comme quand ils stabilisent le tronc pendant les autres efforts.',
+    cues: ['Corps en ligne droite de la tête aux pieds', 'Hanches hautes, fesses serrées', 'Avant-bras vers l\'avant', 'Ne penche ni en avant ni en arrière'],
+    err: ['Bassin qui tombe', 'Se tordre ou plier aux hanches'],
+    home: 'Débutant : genoux pliés au sol (version de McGill).',
+    debat: 'Combien de temps ? Contreras dit de tenir 15 à 60 s. McGill préfère des tenues courtes d\'environ 10 s répétées, en pyramide descendante. Les deux visent l\'endurance sans mouvement ; tes 40 s peuvent se faire en 4 × 10 s.',
+    src: [src('mcgill', 'p. 102 et 105'), src('contreras', 'p. 79 (éd. papier)')]},
+  'Dumbbell Suitcase': {lvl: 2,
+    why: 'Le portage en valise (un seul poids, d\'un côté) entraîne le tronc à ne pas pencher. McGill raconte le cas d\'un patient soigné ainsi.',
+    meca: 'Le carré des lombes du côté opposé au poids travaille sans changer de longueur : c\'est exactement son rôle de stabilisateur. McGill y a recouru pour un déficit d\'endurance latérale.',
+    cues: ['Tiens-toi droit comme si un fil tirait le haut de ton crâne', 'L\'épaule chargée ne descend pas', 'Change de côté à chaque série'],
+    err: ['Se pencher vers le poids ou à l\'opposé', 'Hausser l\'épaule libre'],
+    home: 'Marche ou tiens-toi immobile, haltère le plus lourd possible.',
+    debat: 'La flexion latérale avec haltère (Delavier) fait travailler les mêmes muscles en mouvement. McGill préfère la version immobile, plus douce pour le dos.',
+    src: [src('mcgill', 'p. 30'), src('delavier', 'p. 184')]},
+};
+
+// Principes : t titre, d ce que ça veut dire pour toi, m mécanisme, ok/nu/ko [livre, précision]
+const PRINCIPES = [
+  {t: 'Surcharge progressive', lvl: 3,
+    d: 'Quand toutes les séries passent avec 1 à 2 reps en réserve, ajoute 1 rep ou un peu de charge la fois suivante. C\'est ce que fait ton programme semaine après semaine.',
+    m: 'Le corps ne s\'adapte qu\'à ce qui le dérange. Zatsiorsky présente deux modèles, la surcompensation et le modèle forme-fatigue : chaque séance crée de la forme et de la fatigue, et la fatigue part plus vite.',
+    ok: [['helms', 'p. 109'], ['zatsiorsky', 'p. 18'], ['wendler', '« commence trop léger »'], ['rippetoe', 'effet débutant']],
+    nu: [['rippetoe', 'Au début, on progresse à chaque séance ; après 6 mois à 2 ans, plutôt de semaine en semaine (Helms p. 109). Toi, après ta pause, tu vas revivre une phase « débutant ».']], ko: []},
+  {t: 'Volume : 10 à 20 séries par muscle et par semaine', lvl: 3,
+    d: 'Ton programme démarre au bas de la fourchette pendant la reprise et monte ensuite. Augmente seulement si tu stagnes et que tu récupères bien.',
+    m: 'Plus de séries, plus de stimulus, mais aussi plus de fatigue. Israetel parle d\'un minimum efficace (MEV) et d\'un maximum récupérable (MRV), propres à chacun.',
+    ok: [['helms', 'p. 47 et 62'], ['rp', 'MEV → MRV']],
+    nu: [['rp', 'Les seuils varient selon la personne, le muscle et la période : la fourchette est un point de départ, pas une loi.']], ko: []},
+  {t: 'Effort : finir à 1 à 3 reps de l\'échec', lvl: 3,
+    d: 'Arrête tes séries quand il te resterait 1 à 3 reps. L\'échec complet, garde-le pour les exercices d\'isolation et la dernière série.',
+    m: 'Delavier : les fibres se recrutent progressivement, et seule une série dure fait travailler tout le muscle. Mais l\'échec coûte cher : dans une étude citée par Helms, 3 × 10 jusqu\'à l\'échec a demandé 24 à 48 h de récupération de plus que 6 × 5 au même poids.',
+    ok: [['helms', 'p. 184'], ['rp', '2–3 RIR = meilleur ratio stimulus/fatigue'], ['delavier', 'p. 8']],
+    nu: [['zatsiorsky', 'Aller jusqu\'à l\'échec (la « méthode des efforts répétés ») est l\'une des 3 voies vers une tension maximale (p. 88). Elle n\'est pas fausse, elle coûte juste en fatigue.'],
+      ['rp', 'Les débutants estiment mal leur marge : poussés par quelqu\'un, beaucoup font bien plus de reps qu\'ils ne le pensaient. Helms (p. 65) ajoute que les pratiquants expérimentés estiment bien, et conseille de se filmer pour s\'étalonner.'],
+      ['hutchinson', 'L\'effort perçu est « l\'arbitre final » : la fatigue mentale le fait monter sans que les muscles soient plus faibles (p. 77). Après une journée épuisante, une série paraît plus dure qu\'elle ne l\'est.']], ko: []},
+  {t: 'Plage de reps : de 5 à 30 reps, tout fait grossir', lvl: 3,
+    d: 'Si l\'effort est suffisant, 6 reps lourdes ou 25 reps légères construisent du muscle. C\'est ce qui rend ton programme faisable chez toi avec des haltères de 15 à 20 kg.',
+    m: 'C\'est la proximité de l\'échec qui recrute les grosses unités motrices, pas la charge seule. En dessous de 30 % du max environ, la fatigue cardio arrive avant la fatigue musculaire.',
+    ok: [['rp', '5–30 reps, 30–85 % du max'], ['helms', 'p. 47 : surtout 6–12, le reste en 1–6 et 12–20']],
+    nu: [['delavier', 'Pour le squat aux haltères, il conseille 10 à 15 reps avec une charge modérée (p. 122).'], ['nsca', 'La tradition des préparateurs reste 6 à 12 reps pour l\'hypertrophie.']], ko: []},
+  {t: 'Repos : 2 à 3 min sur les gros exercices', lvl: 3,
+    d: 'Repose-toi jusqu\'à être prêt à refaire une vraie série : environ 2 à 3 min sur les exercices principaux, 1 à 1,5 min sur les petits.',
+    m: 'Un repos trop court fait baisser les reps des séries suivantes, donc le volume utile.',
+    ok: [['helms', 'p. 184 : « repose-toi jusqu\'à être prêt », au moins 1,5 min'], ['nsca', 'p. 1254 : 3 min a fait gagner plus de muscle que 1 min']],
+    nu: [['nsca', 'La tradition des préparateurs disait 1,5 min ou moins pour l\'hypertrophie (p. 1254). La 5e édition (2026) reconnaît que plus long marche mieux : un manuel qui se corrige.']], ko: []},
+  {t: 'Amplitude complète et étirement sous charge', lvl: 2,
+    d: 'Descends toujours dans la partie où le muscle est étiré : bas du développé, bas du squat bulgare, bas du soulevé de terre roumain.',
+    m: 'Les unités motrices ne s\'activent pas toutes au même angle. La tension en position étirée semble être un facteur de croissance à part entière.',
+    ok: [['rp', 'tension en étirement'], ['glutelab', 'étirement long → dommages musculaires'], ['delavier', 'p. 76'], ['contreras', 'p. 44']],
+    nu: [['glutelab', 'Contreras rappelle qu\'il y a une limite entre dommages utiles et dommages excessifs : trop de courbatures freinent la séance suivante.']], ko: []},
+  {t: 'Tempo : une descente lente n\'ajoute pas de muscle en soi', lvl: 2,
+    d: 'Contrôle la descente (2 s environ), sans plus. Chez toi, la descente en 3 à 4 s sert à autre chose : rendre une charge trop légère assez dure.',
+    m: 'La charge qu\'on peut utiliser est limitée par la phase où l\'on soulève. Ralentir beaucoup la descente fait baisser la charge sans ajouter de stimulus (Helms).',
+    ok: [['helms', 'p. 192']],
+    nu: [['contreras', 'Pour les exercices au poids du corps, il recommande les excentriques lents pour progresser vers un mouvement trop dur (leg curl glissé, tractions).']], ko: []},
+  {t: 'Dos neutre sous la charge', lvl: 3,
+    d: 'Tout ce qui se penche (rowing, SDT roumain) se fait avec la courbure naturelle du dos, en pliant les hanches, jamais le bas du dos.',
+    m: 'Le rachis neutre est sa position la moins stressée (McGill). La flexion répétée sous charge est le mécanisme de blessure qu\'il décrit le plus souvent.',
+    ok: [['mcgill', 'p. 22 et 68'], ['nsca', 'p. 1042']],
+    nu: [['delavier', 'Écrit « dos cambré » (p. 101) : c\'est l\'ancien vocabulaire pour la même idée.']], ko: []},
+  {t: 'Fréquence : chaque muscle 2 fois par semaine', lvl: 3,
+    d: 'Ton découpage haut/bas sur 4 jours travaille chaque muscle 2 fois par semaine.',
+    m: 'Répartir le même volume sur deux séances garde chaque série de meilleure qualité.',
+    ok: [['helms', 'p. 47 et 79']], nu: [], ko: []},
+  {t: 'Les premiers gains de force sont nerveux', lvl: 3,
+    d: 'Pendant les semaines de reprise, ta force va monter vite alors que ton corps changera peu : c\'est normal, pas une illusion.',
+    m: 'Le système nerveux apprend à recruter plus d\'unités motrices, plus synchronisées. Le gain de force ne s\'accompagne donc pas forcément d\'une hypertrophie au début.',
+    ok: [['wilmore', 'p. 279 (résumé du chapitre)']], nu: [], ko: []},
+  {t: 'Protéines : 1,6 à 2,2 g par kg et par jour', lvl: 3,
+    d: 'Avec 55 kg : environ 90 à 120 g par jour. Ton plan vise 120 à 150 g : un peu au-dessus, sans risque, c\'est une marge.',
+    m: 'Au-delà de cette fourchette, les études ne montrent plus de gain de muscle mesurable chez la plupart des gens.',
+    ok: [['aragon', 'p. 110'], ['lyon', '1,6 g/kg au minimum']],
+    nu: [['lyon', 'Elle recommande plutôt 1 g par livre de poids idéal (≈ 2,2 g/kg) et donne la priorité au premier repas.']], ko: []},
+  {t: 'Le « seuil de leucine » à chaque repas', lvl: 1,
+    d: 'Mets au moins 25 à 40 g de protéines dans 3 à 5 repas. Ça ne coûte rien et c\'est bon que l\'hypothèse soit vraie ou non (voir « Décider dans l\'incertitude »).',
+    m: 'L\'idée : une dose de leucine (≈ 2 à 3 g, soit 20 à 25 g de protéines) déclenche la synthèse des protéines musculaires via mTOR.',
+    ok: [['lyon', 'au cœur de sa méthode']],
+    nu: [],
+    ko: [['aragon', 'p. 111 : des études récentes remettent en cause cette hypothèse ; ce qui compte surtout, c\'est le total de la journée.']]},
+  {t: 'Prendre du poids lentement : 0,25 à 0,5 % par semaine', lvl: 2,
+    d: 'À 55 kg, ça fait 0,55 à 1,1 kg par mois. Ton objectif de 1 kg par mois est en haut de la fourchette : ça va parce que tu pars très mince.',
+    m: 'Plus vite, le surplus devient surtout du gras. Israetel recommande aussi des phases de prise de 6 à 16 semaines.',
+    ok: [['rpdiet', 'résumé du chapitre sur la prise de masse']],
+    nu: [['rpdiet', 'Il conseille au moins 3 % de poids gagné par phase pour que ça compte : pour toi, 1,7 kg.']], ko: []},
+  {t: 'Calories : la balance tranche, pas le calcul', lvl: 3,
+    d: 'Les 2 550 kcal sont une estimation. Ce qui compte, c\'est la moyenne de tes pesées semaine après semaine (onglet Plan).',
+    m: 'Pontzer montre que la dépense totale est « contrainte » : bouger plus n\'augmente pas la dépense autant que les formules le supposent, parce que le corps économise ailleurs.',
+    ok: [['pontzer', 'dépense contrainte']], nu: [], ko: []},
+  {t: 'Qualité des aliments', lvl: 2,
+    d: '80 à 90 % d\'aliments entiers ou peu transformés, et 10 à 20 % de plaisir. Pour grossir, profite des aliments riches et bons qui restent peu transformés : huile d\'olive, noix, fromage, riz, smoothies.',
+    m: 'Guyenet explique que la « récompense alimentaire » (goût, densité, variété) pousse à manger plus. D\'habitude c\'est un piège ; pour toi, c\'est un outil.',
+    ok: [['aragon', 'p. 354 : 80–90 % d\'aliments entiers'], ['pollan', '« Eat food. Not too much. Mostly plants. »'], ['spector', 'aliments ultra-transformés'], ['guyenet', 'récompense alimentaire']],
+    nu: [['aragon', 'La poudre de protéines est un aliment fabriqué mais nutritif : c\'est l\'exception qu\'il accepte (p. 354).']],
+    ko: [['spector', 'Spector et Pollan mettent la qualité avant le compte des calories ; Aragon et Norton font l\'inverse. Ils se rejoignent sur la pratique : surtout des vrais aliments.']]},
+  {t: 'Sommeil : la récupération numéro 1', lvl: 3,
+    d: 'Tu dors plus de 8 h : garde-le. C\'est ton meilleur atout pour grossir en muscle.',
+    m: 'Walker rapporte qu\'une semaine de sommeil réduit fait chuter la testostérone d\'hommes jeunes au niveau d\'hommes de 10 à 15 ans plus âgés.',
+    ok: [['walker', 'p. 221']], nu: [], ko: []},
+  {t: 'Pas de bain froid ni d\'antioxydants à forte dose autour des séances', lvl: 2,
+    d: 'Pas de bain glacé après la muscu, et pas de vitamines C ou E à forte dose autour des séances. Les fruits et légumes, eux, ne posent aucun problème.',
+    m: 'L\'inflammation après la séance fait partie du signal d\'adaptation. Dans deux expériences de 2015, l\'eau froide a réduit les gains de muscle et de force.',
+    ok: [['aschwanden', 'p. 102']],
+    nu: [['aschwanden', 'Pour les antioxydants, les résultats sont mitigés : toutes les études ne trouvent pas de frein (p. 91).']], ko: []},
+  {t: 'Stress chronique', lvl: 2,
+    d: 'Un stress qui dure (dette de sommeil, soucis) mange tes progrès : garde les séances même courtes, et réduis le volume plutôt que d\'arrêter.',
+    m: 'Les glucocorticoïdes du stress mobilisent l\'énergie pour l\'urgence, au détriment de la construction et de la réparation.',
+    ok: [['sapolsky', 'glucocorticoïdes']], nu: [], ko: []},
+  {t: 'Force, cardio et longévité', lvl: 2,
+    d: 'Le muscle ne suffit pas : ton plan garde du cardio. « Tanker la vie », c\'est être fort ET endurant.',
+    m: 'Attia : une VO2max sous la moyenne de son âge (25e à 50e centile) va avec deux fois plus de risque de mourir, toutes causes confondues, que le quart le plus en forme ; il juge ce risque relatif plus élevé que celui du tabac. Une poigne faible va aussi avec plus de démence. Lyon fait du muscle un organe de santé.',
+    ok: [['attia', 'chapitres VO2max et force'], ['lyon', 'le muscle comme organe']],
+    nu: [['lieberman', 'Nos ancêtres chasseurs-cueilleurs étaient minces et assez forts, pas massifs : être énorme n\'a rien de « naturel » ni de nécessaire. Être fort et actif, oui.']],
+    ko: []},
+];
+
+// Débats entre livres : [sujet, position A, position B, ce qu'on en fait]
+const DEBATS = [
+  ['Le seuil de leucine', 'Lyon : il faut l\'atteindre à chaque repas', 'Aragon : hypothèse remise en cause ; c\'est le total de la journée qui compte', 'Choix dominant : 3 à 5 repas protéinés. Bon dans les deux cas.'],
+  ['Dos « cambré » ou « neutre »', 'Delavier : garder le dos cambré', 'McGill, NSCA : rachis neutre', 'Désaccord de mots plus que de fond : ne jamais arrondir le bas du dos.'],
+  ['Temps de repos pour l\'hypertrophie', 'Tradition NSCA : 1,5 min ou moins', 'Helms, NSCA 2026 : plus long (2–3 min) marche mieux', 'Le manuel lui-même a changé d\'avis : 2–3 min.'],
+  ['Aller jusqu\'à l\'échec', 'Zatsiorsky : méthode valable', 'Israetel, Helms : trop coûteux sur les gros exercices', 'Échec sur les petits exercices, 1–3 reps de marge sur les gros.'],
+  ['Qualité des aliments ou calories', 'Pollan, Spector : la qualité d\'abord', 'Aragon, Norton : les calories et protéines d\'abord', 'Ils se rejoignent : 80–90 % de vrais aliments.'],
+  ['Tenir longtemps le gainage', 'Contreras : 15 à 60 s', 'McGill : tenues courtes (~10 s) répétées', 'Même but (endurance sans mouvement) : 40 s ou 4 × 10 s.'],
+  ['Nos ancêtres étaient-ils musclés ?', 'Mouvement « primal » : oui, très', 'Lieberman : minces et assez forts, pas massifs', 'Grossir n\'est pas « naturel », c\'est un choix ; utile s\'il reste fonctionnel.'],
+  ['Glace et récupération', 'Tradition sportive : bain froid', 'Aschwanden : l\'eau froide peut freiner les gains', 'Pas de bain froid après la muscu.'],
+  ['Peut-on se fier à son ressenti ?', 'Helms : les pratiquants expérimentés estiment bien leur marge', 'Israetel, Hutchinson : les débutants se trompent, et la fatigue mentale fausse la perception', 'Étalonne-toi : de temps en temps, va à l\'échec sur la dernière série d\'un exercice d\'isolation et compare à ta prédiction.'],
+  ['Le genou devant les orteils', 'Idée reçue : interdit', 'Contreras : permis, c\'est la version quadriceps', 'Genou dans l\'axe, sans douleur.'],
+];
+
+const bk = k => BOOKS[k] ? (BOOKS[k].s || BOOKS[k].a) : k;
+function srcLine(list) {
+  return list.map(([k, p]) => `<span title="${esc(BOOKS[k] ? BOOKS[k].a + ', ' + BOOKS[k].t : '')}">${esc(bk(k))}${p ? ', ' + esc(p) : ''}</span>`).join(' · ');
+}
+function ficheHtml(name) {
+  const f = FICHES[name]; if (!f) return '';
+  const [dots, lt] = LVL[f.lvl];
+  return `<div class="fiche">
+    <p><b>Pourquoi pour toi.</b> ${esc(f.why)}</p>
+    <p><b>Mécanique.</b> ${esc(f.meca)}</p>
+    <p class="fh">À penser pendant la série</p><ul>${f.cues.map(c => `<li>${esc(c)}</li>`).join('')}</ul>
+    <p class="fh">Erreurs fréquentes</p><ul>${f.err.map(c => `<li>${esc(c)}</li>`).join('')}</ul>
+    <p><b>Chez toi.</b> ${esc(f.home)}</p>
+    <p class="debat"><b>Ce qui se discute.</b> ${esc(f.debat)} <span class="lvl" title="${esc(lt)}">${dots}</span></p>
+    <p class="src">📚 ${srcLine(f.src)}</p></div>`;
+}
+const openFiches = new Set();
+function ficheDetails(name) {
+  if (!FICHES[name]) return '';
+  return `<details class="fiche-d" data-fiche="${esc(name)}" ${openFiches.has(name) ? 'open' : ''}><summary>📖 Comprendre l'exercice</summary>${ficheHtml(name)}</details>`;
+}
+document.addEventListener('toggle', ev => {
+  const d = ev.target; if (!d.dataset || !d.dataset.fiche) return;
+  d.open ? openFiches.add(d.dataset.fiche) : openFiches.delete(d.dataset.fiche);
+}, true);
+
+function chipList(list, cls) {
+  return list.map(([k, p]) => `<span class="chip ${cls}" title="${esc(BOOKS[k] ? BOOKS[k].t : '')}">${esc(bk(k))}${p && cls === 'ok' ? ' · ' + esc(p) : ''}</span>`).join('');
+}
+function vSavoir() {
+  const days = PROG_DAYS.map(d => `<li><span class="n">${esc(d.name)}</span><span class="fl">${d.ex.map(([n]) => FICHES[n]
+    ? `<button class="btn ghost fbtn" data-act="fiche" data-ex="${esc(n)}">${esc(n.replace(/ \(haltère\)| avec haltères| \(kettlebell\)/, ''))}</button>` : '').join('')}</span></li>`).join('');
+  const extra = ['Floor press (haltère)', 'Rowing un bras (haltère)'].map(n => `<button class="btn ghost fbtn" data-act="fiche" data-ex="${esc(n)}">${esc(n.replace(' (haltère)', ''))}</button>`).join('');
+  const princ = PRINCIPES.map(p => { const [dots, lt] = LVL[p.lvl];
+    return `<details class="card princ"><summary><span>${esc(p.t)}</span><span class="lvl" title="${esc(lt)}">${dots}</span></summary>
+      <p><b>Pour toi.</b> ${esc(p.d)}</p><p><b>Pourquoi.</b> ${esc(p.m)}</p>
+      <div class="chips"><span class="small muted">D'accord :</span> ${chipList(p.ok, 'ok')}</div>
+      ${p.nu.length ? `<div class="nuance">${p.nu.map(([k, t]) => `<p><span class="chip nu">${esc(bk(k))}</span> ${esc(t)}</p>`).join('')}</div>` : ''}
+      ${p.ko.length ? `<div class="nuance">${p.ko.map(([k, t]) => `<p><span class="chip ko">${esc(bk(k))}</span> ${esc(t)}</p>`).join('')}</div>` : ''}
+    </details>`; }).join('');
+  const deb = DEBATS.map(([s, a, b, c]) => `<tr><td><b>${esc(s)}</b></td><td>${esc(a)}</td><td>${esc(b)}</td><td>${esc(c)}</td></tr>`).join('');
+  const lib = Object.entries(BOOK_GROUPS).map(([g, gt]) => `<p class="fh">${esc(gt)}</p><ul class="lib">${Object.values(BOOKS).filter(b => b.g === g)
+    .map(b => `<li><b>${esc(b.a)}</b>, <i>${esc(b.t)}</i>${b.y ? ' (' + b.y + ')' : ''} — <span class="muted">${esc(b.r)}</span></li>`).join('')}</ul>`).join('');
+
+  return `<p class="kicker">Ce que disent tes livres</p><h1>Savoir</h1>
+  <div class="card"><p style="margin-top:0">Chaque conseil de l'appli renvoie au livre et à la page qui le soutiennent. La force de la preuve est notée :</p>
+    <ul class="legend">${Object.values(LVL).reverse().map(([d, t]) => `<li><span class="lvl">${d}</span><span>${esc(t)}</span></li>`).join('')}</ul>
+    <p class="small muted" style="margin-bottom:0">Pages : celles du fichier PDF ; « éd. papier » quand le livre numérique donne la page imprimée. Les citations sont résumées, pas recopiées.</p></div>
+
+  <h2>Les fiches de tes exercices</h2>
+  <div class="card"><p class="small muted" style="margin-top:0">Elles s'ouvrent aussi pendant la séance, sous chaque exercice (« Comprendre l'exercice »).</p>
+    <ul class="exlist days">${days}<li><span class="n">Remplaçants</span><span class="fl">${extra}</span></li></ul></div>
+
+  <h2>Les principes, et qui les soutient</h2>${princ}
+
+  <h2>Là où tes livres ne sont pas d'accord</h2>
+  <div class="card scrollx"><table class="ptable debats"><thead><tr><th>Sujet</th><th>D'un côté</th><th>De l'autre</th><th>Ce qu'on en fait</th></tr></thead><tbody>${deb}</tbody></table></div>
+
+  <h2>La méthode : comment savoir si c'est vrai</h2>
+  <details class="card"><summary>Trois sortes de savoir dans tes livres</summary>
+    <p><b>Les mécanismes</b> (Neumann, Kapandji, Guyton, Wilmore) disent ce qui est <i>possible</i> : quel muscle tire, dans quel axe. Ils ne disent pas ce qui marche le mieux sur des mois.</p>
+    <p><b>Les essais et leurs synthèses</b> (résumés par Helms, Israetel, Aragon, la NSCA) disent ce qui marche <i>en moyenne</i>. Ils portent souvent sur 8 à 12 semaines, avec des étudiants débutants.</p>
+    <p><b>Le savoir des praticiens</b> (Delavier, Rippetoe, Wendler, Starrett, McGill en clinique) a été testé sur beaucoup de gens, mais sans groupe témoin. C'est une tradition qui a survécu, pas une preuve.</p></details>
+  <details class="card"><summary>Les pièges classiques</summary>
+    <p><b>L'effet débutant.</b> Rippetoe remarque que les études universitaires utilisent des étudiants débutants, chez qui « tout marche, plus ou moins ». Comparer deux programmes sur eux départage mal les méthodes.</p>
+    <p><b>Corrélation n'est pas causalité.</b> La poigne et la démence, la VO2max et la mortalité (Attia) viennent d'études d'observation. Les gens malades perdent leur force (causalité inverse) et les gens actifs ont d'autres bonnes habitudes (confusion). C'est le mécanisme plausible, plus les essais, qui en font un pari raisonnable.</p>
+    <p><b>Les mesures de substitution.</b> Une forte activation EMG (hip thrust) ou un pic de synthèse protéique après un repas (leucine) ne garantissent pas des kilos de muscle sur des mois.</p>
+    <p><b>Les intérêts.</b> Plusieurs auteurs vendent aussi des programmes, des applis ou des produits. Ça ne rend pas leurs idées fausses, mais ça demande des preuves venues d'ailleurs.</p></details>
+  <details class="card"><summary>Décider dans l'incertitude</summary>
+    <p>Quand les livres divergent, cherche l'option <b>bonne dans tous les cas</b>. Les protéines réparties sur 3 à 5 repas sont utiles si le seuil de leucine existe, et ne coûtent rien s'il n'existe pas. Le dos neutre convient à Delavier comme à McGill. Et la marge de 1 à 3 reps garde presque tout le stimulus pour beaucoup moins de fatigue.</p></details>
+  <details class="card"><summary>Ton expérience à n = 1</summary>
+    <p><b>Hypothèse :</b> 2 550 kcal par jour → +1 kg par mois. <b>Mesure :</b> une pesée chaque matin et la moyenne par semaine (l'onglet Plan). Le poids d'un jour bouge de ±1 kg avec l'eau, le glycogène et la créatine : c'est du bruit, pas un signal.</p>
+    <p><b>Prédiction réfutable :</b> si la moyenne monte de moins de 0,15 kg par semaine pendant 3 semaines, l'hypothèse est fausse → ajoute 150 à 200 kcal. <b>Une seule variable à la fois</b>, sinon tu ne sauras pas ce qui a marché.</p>
+    <p><b>Progrès :</b> ton historique de séances est la deuxième mesure. Si le poids monte et que les charges montent aussi, c'est surtout du muscle ; si le poids monte et que les charges stagnent, c'est surtout du gras.</p></details>
+
+  <h2>Ta bibliothèque</h2>
+  <details class="card"><summary>Ce que chaque livre apporte</summary>${lib}
+    <p class="small muted">Dix livres étaient des scans sans texte (Kapandji, Calais-Germain tome 2, Kendall, Myers, Biel, Hutchinson, Clark, Brooks…) : ils ont été passés à l'OCR pour pouvoir y chercher. Schoenfeld (.lit) et Gleeson (fichier incomplet) n'ont pas pu être lus. Les doublons en chinois (Delavier, Schwarzenegger) n'ont pas été utilisés.</p></details>`;
+}
+
 const MEALS = [
   {t: '08:00', name: 'Petit-déjeuner', k: 660, p: 27, items: ['80 g de flocons d\'avoine', '300 ml de lait demi-écrémé', '1 banane', '20 g de beurre de cacahuète', '+ 3 à 5 g de créatine'],
     how: 'Porridge : flocons + lait au micro-ondes 2 min, banane et beurre de cacahuète dessus.'},
@@ -1747,6 +2231,7 @@ document.addEventListener('click', ev => {
     case 'finish': return finishDialog();
     case 'save': return saveSession();
     case 'close': return closeModal();
+    case 'fiche': return modal(`<h2>${esc(d.ex)}</h2>${ficheHtml(d.ex)}<div class="row" style="margin-top:14px"><div class="spacer"></div><button class="btn" data-act="close">Fermer</button></div>`);
     case 'discard': return confirmBox('Abandonner la séance en cours ? Rien ne sera enregistré.', () => { S.active = null; stopRest(); save(); go('home'); }, 'Abandonner');
     case 'toggle': {
       const x = A.ex[ei].sets[si]; x.done = !x.done; save(); render();
