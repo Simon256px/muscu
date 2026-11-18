@@ -332,6 +332,13 @@ table.data td:not(:first-child),table.data th:not(:first-child){text-align:right
 button.picwrap{background:none;border:0;padding:0;cursor:pointer;font:inherit;color:inherit}
 button.picwrap .cap{color:var(--coal)}
 .picbtn{background:none;border:0;padding:0;cursor:pointer;border-radius:16px;min-height:44px}
+.coauto{background:var(--cloud);border-radius:16px;padding:12px 14px;margin:4px 0 10px;display:flex;flex-direction:column;gap:4px}
+.coauto b{font-size:22px;letter-spacing:-.02em}
+.coauto .row{gap:8px;margin-top:6px}
+.coauto .btn{flex:1;min-height:48px}
+.coautochk{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;margin:8px 0 2px;min-height:44px}
+.coautochk input,.barchk input{width:20px;height:20px;flex:none}
+.barchk{gap:8px;width:100%;flex-wrap:wrap;min-height:44px}
 /* Savoir : fiches et principes */
 #modal .box{max-height:calc(100dvh - 32px);overflow-y:auto}
 .fiche-d{margin:10px 0 4px;border-top:1px solid var(--line)}
@@ -1371,14 +1378,15 @@ function routineEditor(r, ri) {
 /* ---------- Programme perso « Tank » (questionnaire du 16/11/2026) : 19 semaines, 4 séances ---------- */
 // Haut A (lun) / Bas A (mar) / Haut B (jeu) / Bas B (ven). Exercices faisables à la salle ET à la maison
 // (haltères ≤ 20 kg, kettlebell). Références = tes charges Hevy de fin 2025 (kg = total des 2 haltères).
-// [exercice, kg, reps, secondes, principal ?] — principal = gros exercice du jour (plus de séries et de repos)
+// [exercice, kg, reps, secondes, principal ?, remplaçant sans barre de traction [exercice, kg, reps]]
+// principal = gros exercice du jour (plus de séries) ; Pull-over et Rowing un bras : kg = un seul haltère (Hevy fin 2025)
 const PROG_ID = 'tank-4j-2026-11';
 const PROG_DAYS = [
   {dow: 1, name: 'Haut du corps A', ex: [
     ['Développé couché (haltère)', 40, 10, 0, true],
     ['Rowing penché avec haltères', 32, 10, 0, true],
     ['Développé militaire (haltère)', 24, 12, 0, false],
-    ['Traction pronation', 0, 8, 0, false],
+    ['Traction pronation', 0, 8, 0, false, ['Pull-over (haltère)', 16, 15]],
     ['Élévation latérale (haltère)', 12, 20, 0, false],
     ['Curl biceps (haltère)', 24, 8, 0, false]]},
   {dow: 2, name: 'Bas du corps A', ex: [
@@ -1389,7 +1397,7 @@ const PROG_DAYS = [
     ['Mollets une jambe', 0, 15, 0, false],
     ['Marche du fermier (haltère)', 0, 0, 40, false]]},
   {dow: 4, name: 'Haut du corps B', ex: [
-    ['Traction pronation', 0, 8, 0, true],
+    ['Traction pronation', 0, 8, 0, true, ['Rowing un bras (haltère)', 22, 12]],
     ['Développé incliné (haltère)', 24, 10, 0, true],
     ['Pompes lestées', 15, 10, 0, false],
     ['Oiseau / Y-raise (haltère)', 8, 12, 0, false],
@@ -1429,7 +1437,7 @@ const PHASES = [
   {name: 'Reprise', weeks: 'Semaines 1 → 4', text: '65 à 80 % de tes charges de fin 2025, 2 séries les 2 premières semaines puis 3. Technique propre, tu t\'arrêtes 3 reps avant l\'échec. La mémoire musculaire fait revenir le muscle vite.'},
   {name: 'Construction 1', weeks: 'Semaines 5 → 9', text: '85 à 100 % : tu retrouves tes anciennes charges. 2 reps avant l\'échec. Arrivée à la salle : mêmes exercices. Semaine 9 légère.'},
   {name: 'Construction 2', weeks: 'Semaines 10 → 14', text: 'Tu dépasses tes anciens records (100 à 110 %), 4 séries sur les gros exercices. Semaine 14 légère.'},
-  {name: 'Force', weeks: 'Semaines 15 → 19', text: '110 à 120 % sur les gros exercices, 4 × 5–6 reps, 2 min de repos. Semaine 19 légère, puis on relance un cycle avec tes nouvelles charges.', force: true},
+  {name: 'Force', weeks: 'Semaines 15 → 19', text: '110 à 120 % sur les gros exercices, 4 × 5–6 reps, 3 min de repos sur les gros exercices. Semaine 19 légère, puis on relance un cycle avec tes nouvelles charges.', force: true},
 ];
 const isoDay = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const roundKg = kg => Math.max(2, Math.round(kg / 2) * 2); // haltères : par pas de 2 kg
@@ -1438,16 +1446,23 @@ function progState() {
   if (!S.program || S.program.id !== PROG_ID) S.program = {id: PROG_ID, start: isoDay(mondayOf(new Date())), done: {}};
   return S.program;
 }
+// Repos (Helms, Pyramid p. 184 : au moins 2,5 min entre les séries d'un polyarticulaire, 1,5 min pour un petit muscle ;
+// NSCA p. 1254 : 3 min ont fait gagner plus de muscle que 1 min). Exercices tenus : 1 min.
+const ISOLATION = new Set(['Élévation latérale (haltère)', 'Curl biceps (haltère)', 'Leg curl glissé', 'Mollets une jambe',
+  'Oiseau / Y-raise (haltère)', 'Extension triceps (haltère)', 'Curl marteau (haltère)', 'Pull-over (haltère)']);
+const restFor = (name, main, sec, force) => sec ? 60 : ISOLATION.has(name) ? 90 : main && force ? 180 : 150;
 function progSession(w, d) {
-  const W = PROG_WEEKS[w], D = PROG_DAYS[d];
-  const ex = D.ex.map(([name, kg, reps, sec, main]) => {
+  const W = PROG_WEEKS[w], D = PROG_DAYS[d], bar = progState().bar;
+  const ex = D.ex.map(([name0, kg0, reps0, sec, main, alt]) => {
+    // sans barre de traction, on prend le remplaçant prévu pour ce jour-là
+    const [name, kg, reps] = alt && !bar ? alt : [name0, kg0, reps0];
     const [n, r] = main ? W.main : W.acc;
     const pct = main ? W.pct : Math.min(W.pct, W.accPct ?? W.pct);
     const set = sec ? {w: 0, r: 0, s: Math.max(15, Math.round(sec * pct / 5) * 5)}
       // près de 100 % on ne demande pas plus de reps que ce que tu faisais avant à cette charge
       : kg ? {w: roundKg(kg * pct), r: Math.max(3, Math.min(r, reps + Math.round((1 - pct) * 30))), s: 0}
       : {w: 0, r: Math.max(3, Math.round(reps * pct)), s: 0}; // poids du corps : les reps suivent le %
-    return {name, type: sec ? 'time' : 'reps', rest: main ? (PHASES[W.phase].force ? 120 : 90) : 60,
+    return {name, type: sec ? 'time' : 'reps', rest: restFor(name, main, sec, PHASES[W.phase].force),
       note: 'avant la pause : ' + fmtSet({w: kg, r: sec ? 0 : reps, s: sec}), sets: Array.from({length: n}, () => ({...set}))};
   });
   return {name: `Programme S${w + 1} – ${DAYS[D.dow]} : ${D.name}`, exercises: [warm(), ...ex]};
@@ -1480,10 +1495,12 @@ function vProgram() {
   let h = `<h1>Mon programme</h1>
     <p class="muted small">${PROG_WEEKS.length} semaines · ${PROG_DAYS.length} séances par semaine (lundi, mardi, jeudi, vendredi) · objectif +1 kg par mois. Mêmes exercices à la salle et à la maison :
     à la salle, prends les haltères au poids prévu ; à la maison, si tes haltères (20 kg max) sont trop légers, ajoute des reps et descends en 3–4 s.
-    Pas encore de barre de traction ? Remplace les tractions par du rowing un bras. Charges de référence = tes charges Hevy de fin 2025.</p>
+    Charges de référence = tes charges Hevy de fin 2025. Repos réglés pour chaque exercice : 2 min 30 sur les polyarticulaires (3 min en phase Force), 1 min 30 sur les petits muscles, 1 min sur les exercices tenus.</p>
     <div class="card"><div class="row"><div style="flex:1;min-width:200px"><div class="exname">${nDone} / ${total} séances faites</div>
       <div class="progress"><i style="width:${nDone / total * 100}%"></i></div></div>
-      <label class="small muted row" style="gap:6px">Début du programme <input type="date" class="field" id="pstartdate" value="${P.start}"></label></div></div>`;
+      <label class="small muted row" style="gap:6px">Début du programme <input type="date" class="field" id="pstartdate" value="${P.start}"></label>
+      <label class="small row barchk"><input type="checkbox" id="pbar" ${P.bar ? 'checked' : ''}> J'ai une barre de traction
+        <span class="muted">${P.bar ? '(tractions au programme)' : '(sans barre : pull-over le lundi, rowing un bras le jeudi)'}</span></label></div></div>`;
   h += next ? `<h2>Prochaine séance</h2>${progCard(next[0], next[1], true)}`
     : `<div class="card"><div class="exname">🏆 Programme terminé !</div><div class="muted small">Tu as retrouvé tes charges d'avant. Tu peux changer la date de début pour le refaire avec de nouvelles références.</div></div>`;
   h += `<h2>Les ${PHASES.length} phases</h2><div class="stats" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">${PHASES.map(p => `<div class="stat"><b style="font-size:17px">${p.name}</b>
@@ -1655,9 +1672,9 @@ function lerpPose(a, b, u) {
 const smooth = u => u * u * (3 - 2 * u);
 
 // état du coach
-let CO = null, coAudio = null;
-function coPrefs() { try { return Object.assign({tempo: 'normal', sound: 'off'}, JSON.parse(localStorage.getItem('muscu.coach') || '{}')); } catch (e) { return {tempo: 'normal', sound: 'off'}; } }
-function coSavePrefs() { try { localStorage.setItem('muscu.coach', JSON.stringify({tempo: CO.tempo, sound: CO.sound})); } catch (e) {} }
+let CO = null, coAudio = null, coRaf = 0;
+function coPrefs() { const def = {tempo: 'normal', sound: 'off', auto: 'on'}; try { return Object.assign(def, JSON.parse(localStorage.getItem('muscu.coach') || '{}')); } catch (e) { return def; } }
+function coSavePrefs() { try { localStorage.setItem('muscu.coach', JSON.stringify({tempo: CO.tempo, sound: CO.sound, auto: CO.auto ? 'on' : 'off'})); } catch (e) {} }
 function coTone(f, d = .12, v = .22) {
   try {
     coAudio = coAudio || new (window.AudioContext || window.webkitAudioContext)();
@@ -1675,14 +1692,15 @@ function coSound(kind, word) {
   if (CO.sound === 'voice') { if (word) coSay(word); return; }
   ({ecc: () => coTone(440, .18), con: () => coTone(880, .12), bas: () => coTone(330, .08), rep: () => coTone(660, .06, .15), tick: () => coTone(660, .08), end: () => beep()})[kind]?.();
 }
-function coachOpen(name, ei) {
+function coachOpen(name, ei, autoplay) {
   const info = exInfo(name), key = info.p, fr = FRAMES[key] || [key];
   const A = S.active, e = A && ei != null && ei !== '' && A.ex[+ei] && A.ex[+ei].name === name ? A.ex[+ei] : null;
   const si = e ? e.sets.findIndex(x => !x.done) : -1, set = si >= 0 ? e.sets[si] : null;
   const ref = PROG_DAYS.flatMap(d => d.ex).find(x => x[0] === name);
   const hold = fr.length === 1 || (e ? e.type === 'time' : !!(ref && ref[3]));
   const pr = coPrefs();
-  CO = {name, key, fr, hold, ei: e ? +ei : null, si, playing: !matchMedia('(prefers-reduced-motion: reduce)').matches, tempo: pr.tempo, sound: pr.sound,
+  CO = {name, key, fr, hold, ei: e ? +ei : null, si, playing: !!autoplay || !matchMedia('(prefers-reduced-motion: reduce)').matches, tempo: pr.tempo, sound: pr.sound,
+    auto: pr.auto !== 'off', mode: null,
     target: hold ? ((set && +set.s) || (ref && ref[3]) || 40) : ((set && +set.r) || (ref && ref[2]) || 0),
     setLabel: e && set ? `Série ${si + 1}/${e.sets.length}` : '', t: 0, last: null, idx: -1, rep: 0, done: false};
   CO.nextTick = Math.floor((CO.target - 1) / 10) * 10;
@@ -1694,6 +1712,7 @@ function coachOpen(name, ei) {
     <div class="cophase"><b id="cophase">Prêt</b><span id="corep" class="muted"></span></div>
     <div class="cobar"><i id="cobar"></i></div>
     <p class="cocue" id="cocue">&nbsp;</p>
+    <div class="coauto" id="coauto" hidden></div>
     ${g.length ? `<div class="coguides">${g.map(([, , l], i) => `<span><i>${i + 1}</i>${esc(l)}</span>`).join('')}</div>` : ''}
     <div class="coctl">
       <button class="btn primary" data-act="coplay" id="coplay">${CO.playing ? '⏸ Pause' : '▶ Lancer'}</button>
@@ -1701,13 +1720,14 @@ function coachOpen(name, ei) {
     </div>
     ${hold ? '' : `<div class="seg" role="group" aria-label="Tempo">${Object.entries(TEMPOS).map(([k, v]) => `<button class="${CO.tempo === k ? 'on' : ''}" data-act="cotempo" data-v="${k}">${esc(v.label)}</button>`).join('')}</div>`}
     <div class="seg" role="group" aria-label="Son">${[['off', '🔇 Muet'], ['beep', '🔔 Bips'], ['voice', '🗣 Voix']].map(([k, l]) => `<button class="${CO.sound === k ? 'on' : ''}" data-act="cosound" data-v="${k}">${l}</button>`).join('')}</div>
-    ${CO.ei != null && set ? `<button class="btn ok cta" data-act="codone">✓ Valider la ${esc(CO.setLabel.toLowerCase())}</button>` : ''}
+    ${CO.ei != null && set ? `<button class="btn ok cta" id="codone" data-act="codone">✓ Valider la ${esc(CO.setLabel.toLowerCase())}</button>
+    <label class="coautochk"><input type="checkbox" id="coautochk" ${CO.auto ? 'checked' : ''}> Valider et enchaîner tout seul : repos, puis série suivante</label>` : ''}
     <h3>Muscles qui travaillent</h3>${muscleMap(name)}
     ${FICHES[name] ? `<details class="fiche-d"><summary>📖 La fiche complète</summary>${ficheHtml(name)}</details>` : ''}
     <div class="row" style="margin-top:14px"><div class="spacer"></div><button class="btn" data-act="close">Fermer</button></div></div>`);
   $('#modalbox').classList.add('wide');
   coDraw(0);
-  requestAnimationFrame(coFrame);
+  cancelAnimationFrame(coRaf); coRaf = requestAnimationFrame(coFrame);
 }
 // suite des phases d'une répétition ; pose 0 = 1re image, 1 = 2e image
 function coPhases() {
@@ -1728,6 +1748,7 @@ function coDraw(v) {
 function coSet(id, txt) { const n = document.getElementById(id); if (n && n.textContent !== txt) n.textContent = txt; }
 function coFrame(ts) {
   if (!CO || !document.getElementById('coach') || $('#modal').hidden) { coStop(); return; }
+  const cur = CO;
   const dt = CO.last == null ? 0 : Math.min(.1, (ts - CO.last) / 1000); CO.last = ts;
   if (CO.playing && !CO.done) CO.t += dt;
   const bar = document.getElementById('cobar');
@@ -1739,7 +1760,7 @@ function coFrame(ts) {
     coSet('cocue', cues[Math.floor(CO.t / 5) % cues.length]);
     if (bar) bar.style.width = Math.min(100, CO.t / CO.target * 100) + '%';
     if (CO.playing && !CO.done && left <= CO.nextTick && left > .5) { coSound('tick', `${CO.nextTick} secondes`); CO.nextTick -= 10; }
-    if (!CO.done && left <= 0) { CO.done = true; coSound('end', 'Terminé'); }
+    if (!CO.done && left <= 0) coFinish();
   } else {
     const P = CO.phases, cyc = P.reduce((s, p) => s + p.d, 0), prep = 1.2;
     let v = P[0].a, label = 'Mets-toi en place', cue = 'Position de départ', frac = 0;
@@ -1753,7 +1774,7 @@ function coFrame(ts) {
         // phases passées depuis la dernière image : on compte les reps finies
         for (let k = CO.idx + 1; k <= gi; k++) if (k > 0 && P[(k - 1) % P.length].rep) CO.rep++;
         CO.idx = gi;
-        if (CO.target && CO.rep >= CO.target) { CO.done = true; coSound('end', 'Terminé'); }
+        if (CO.target && CO.rep >= CO.target) coFinish();
         else if (P[i].rep) coSound('rep', ''), CO.sound === 'voice' && coSay(String(CO.rep + 1));
         else coSound(ph.k, ph.w);
       }
@@ -1767,14 +1788,24 @@ function coFrame(ts) {
     coSet('cocue', cue);
     if (bar) bar.style.width = frac * 100 + '%';
   }
-  const pb = document.getElementById('coplay'); if (pb) { const t = CO.done ? '↺ Encore' : CO.playing ? '⏸ Pause' : '▶ Lancer'; if (pb.textContent !== t) pb.textContent = t; }
-  requestAnimationFrame(coFrame);
+  if (CO.mode === 'confirm') coSet('cocue', 'La série va être validée toute seule');
+  if (CO.mode === 'rest') { coSet('cophase', 'Repos'); coSet('cocue', 'Respire, bois une gorgée, relâche les bras'); if (bar) bar.style.width = '0%'; }
+  coAutoStep();
+  if (CO !== cur) return; // le coach est passé à l'exercice suivant : sa propre boucle a pris le relais
+  const pb = document.getElementById('coplay');
+  if (pb) { const t = {confirm: '✓ Valider', rest: '▶ Série suivante', end: '✓ Fini'}[CO.mode] || (CO.done ? '↺ Encore' : CO.playing ? '⏸ Pause' : '▶ Lancer'); if (pb.textContent !== t) pb.textContent = t; }
+  coRaf = requestAnimationFrame(coFrame);
 }
 function coStop() { try { speechSynthesis.cancel(); } catch (e) {} CO = null; const b = $('#modalbox'); if (b && $('#modal').hidden) b.classList.remove('wide'); }
-function coRestart() { if (!CO) return; Object.assign(CO, {t: 0, idx: -1, rep: 0, done: false, last: null, playing: true, nextTick: Math.floor((CO.target - 1) / 10) * 10}); }
+function coRestart() { if (!CO) return; Object.assign(CO, {t: 0, idx: -1, rep: 0, done: false, last: null, playing: true, mode: null, nextTick: Math.floor((CO.target - 1) / 10) * 10}); coPanel(); }
 function coAction(act, v) {
   if (!CO) return;
-  if (act === 'coplay') { if (CO.done) coRestart(); else CO.playing = !CO.playing; if (CO.playing) coTone(0, .001, .0001); return; }
+  if (act === 'coplay') {
+    if (CO.mode === 'confirm') return coValidate();
+    if (CO.mode === 'rest') { stopRest(); return coNext(); }
+    if (CO.mode === 'end') { closeModal(); return coStop(); }
+    if (CO.done) coRestart(); else CO.playing = !CO.playing; if (CO.playing) coTone(0, .001, .0001); return;
+  }
   if (act === 'corestart') return coRestart();
   if (act === 'cotempo') { CO.tempo = v; CO.phases = coPhases(); coRestart(); }
   if (act === 'cosound') { CO.sound = v; if (v === 'beep') coTone(660, .08); if (v === 'voice') coSay('Voix activée'); }
@@ -1783,8 +1814,73 @@ function coAction(act, v) {
 }
 function coDone() {
   const A = S.active; if (!CO || !A || CO.ei == null) return;
+  if (CO.auto) return coValidate();
   const e = A.ex[CO.ei], x = e && e.sets[CO.si]; if (!x) return;
   closeModal(); coStop(); x.done = true; save(); render(); startRest(e.rest, 'Repos');
+}
+
+// Fin de série. En séance avec « enchaîner » : validation au bout de 4 s (annulable), repos dans le coach, puis série suivante.
+const coWords = s => s < 60 ? `${s} secondes` : `${Math.floor(s / 60)} minute${s >= 120 ? 's' : ''}${s % 60 ? ' ' + s % 60 : ''}`;
+function coFinish() {
+  CO.done = true;
+  if (CO.auto && CO.ei != null && CO.si >= 0) { CO.mode = 'confirm'; CO.until = Date.now() + 4000; coSound('end', 'Série terminée'); coPanel(); }
+  else coSound('end', 'Terminé');
+}
+function coValidate() {
+  const A = S.active, e = A && A.ex[CO.ei], x = e && e.sets[CO.si];
+  if (!x || CO.mode === 'rest' || CO.mode === 'end') return;
+  CO.done = true; x.done = true; save(); render(); startRest(e.rest, 'Repos');
+  // suite : la prochaine série de cet exercice, sinon le prochain exercice pas fini (sans revenir à l'échauffement)
+  let ni = CO.ei, nsi = e.sets.findIndex(y => !y.done);
+  if (nsi < 0) {
+    const order = [...A.ex.keys()].slice(CO.ei + 1).concat([...A.ex.keys()].slice(0, CO.ei));
+    ni = order.find(i => A.ex[i].name !== 'Échauffement' && A.ex[i].sets.some(y => !y.done)) ?? -1;
+    nsi = ni >= 0 ? A.ex[ni].sets.findIndex(y => !y.done) : -1;
+  }
+  if (ni < 0) { CO.mode = 'end'; coSound('end', 'Toutes les séries sont faites. Bravo'); return coPanel(); }
+  CO.next = {ei: ni, si: nsi};
+  CO.nextLabel = ni === CO.ei ? `série ${nsi + 1}/${e.sets.length}` : A.ex[ni].name;
+  CO.mode = 'rest'; CO.lastSec = null;
+  if (!rest) return coNext();
+  if (CO.sound === 'voice') coSay('Validé. Repos ' + coWords(e.rest));
+  coPanel();
+}
+function coNext() {
+  const n = CO.next, A = S.active, e = A && n && A.ex[n.ei];
+  CO.mode = null;
+  if (!e || !e.sets[n.si] || e.sets[n.si].done) return coPanel();
+  if (n.ei !== CO.ei) { if (CO.sound === 'voice') coSay('Exercice suivant : ' + e.name); return coachOpen(e.name, n.ei, true); }
+  const set = e.sets[n.si];
+  CO.si = n.si; CO.target = CO.hold ? (+set.s || CO.target) : (+set.r || CO.target);
+  CO.setLabel = `Série ${n.si + 1}/${e.sets.length}`;
+  const cd = document.getElementById('codone'); if (cd) cd.textContent = '✓ Valider la ' + CO.setLabel.toLowerCase();
+  if (CO.sound === 'voice') coSay(CO.setLabel.replace('/', ' sur '));
+  coRestart();
+}
+function coAutoStep() {
+  if (CO.mode === 'confirm') {
+    const left = CO.until - Date.now();
+    coSet('coautotxt', `Validation dans ${Math.max(1, Math.ceil(left / 1000))} s`);
+    if (left <= 0) coValidate();
+  } else if (CO.mode === 'rest') {
+    const left = rest ? rest.end - Date.now() : 0, sec = Math.ceil(left / 1000);
+    coSet('coautotxt', `Repos ${fmtClock(left + 999)}`);
+    if (sec !== CO.lastSec) {
+      CO.lastSec = sec;
+      if (sec === 30 && CO.sound === 'voice') coSay('30 secondes');
+      if (sec === 10) CO.sound === 'voice' ? coSay('10 secondes, mets-toi en place') : coSound('tick');
+    }
+    if (left <= 0) coNext();
+  }
+}
+function coPanel() {
+  const p = document.getElementById('coauto'), cd = document.getElementById('codone');
+  if (cd) cd.hidden = !!CO.mode;
+  if (!p) return;
+  p.hidden = !CO.mode;
+  p.innerHTML = CO.mode === 'confirm' ? `<b id="coautotxt">Validation dans 4 s</b><div class="row"><button class="btn" data-act="coautocancel">Annuler</button><button class="btn ok" data-act="coautonow">✓ Valider maintenant</button></div>`
+    : CO.mode === 'rest' ? `<b id="coautotxt">Repos</b><span class="muted small">Ensuite : ${esc(CO.nextLabel)}</span><div class="row"><button class="btn" data-act="rest-add" data-v="30">+30 s</button><button class="btn" data-act="rest-skip">Passer ⏭</button></div>`
+    : CO.mode === 'end' ? `<b>Toutes les séries sont validées 💪</b><span class="muted small">Ferme le coach et touche « Terminer » pour enregistrer la séance.</span>` : '';
 }
 
 /* ---------- Savoir : fiches d'exercices et principes, tirés des livres de Downloads\muscu ----------
@@ -2066,10 +2162,10 @@ const PRINCIPES = [
     m: 'C\'est la proximité de l\'échec qui recrute les grosses unités motrices, pas la charge seule. En dessous de 30 % du max environ, la fatigue cardio arrive avant la fatigue musculaire.',
     ok: [['rp', '5–30 reps, 30–85 % du max'], ['helms', 'p. 47 : surtout 6–12, le reste en 1–6 et 12–20']],
     nu: [['delavier', 'Pour le squat aux haltères, il conseille 10 à 15 reps avec une charge modérée (p. 122).'], ['nsca', 'La tradition des préparateurs reste 6 à 12 reps pour l\'hypertrophie.']], ko: []},
-  {t: 'Repos : 2 à 3 min sur les gros exercices', lvl: 3,
-    d: 'Repose-toi jusqu\'à être prêt à refaire une vraie série : environ 2 à 3 min sur les exercices principaux, 1 à 1,5 min sur les petits.',
+  {t: 'Repos : 2,5 à 3 min sur les gros exercices', lvl: 3,
+    d: 'Repose-toi jusqu\'à être prêt à refaire une vraie série : environ 2,5 à 3 min sur les polyarticulaires, 1,5 min sur les petits muscles. Ton programme règle ce repos pour chaque exercice.',
     m: 'Un repos trop court fait baisser les reps des séries suivantes, donc le volume utile.',
-    ok: [['helms', 'p. 184 : « repose-toi jusqu\'à être prêt », au moins 1,5 min'], ['nsca', 'p. 1254 : 3 min a fait gagner plus de muscle que 1 min']],
+    ok: [['helms', 'p. 184 : « repose-toi jusqu\'à être prêt », au moins 2,5 min sur les polyarticulaires et 1,5 min sur les petits muscles'], ['nsca', 'p. 1254 : 3 min a fait gagner plus de muscle que 1 min']],
     nu: [['nsca', 'La tradition des préparateurs disait 1,5 min ou moins pour l\'hypertrophie (p. 1254). La 5e édition (2026) reconnaît que plus long marche mieux : un manuel qui se corrige.']], ko: []},
   {t: 'Amplitude complète et étirement sous charge', lvl: 2,
     d: 'Descends toujours dans la partie où le muscle est étiré : bas du développé, bas du squat bulgare, bas du soulevé de terre roumain.',
@@ -2358,7 +2454,7 @@ function vPlan() {
   <div class="card"><ul class="exlist">
     <li><span class="n">Échauffement</span><span class="muted">5 min de cardio léger + gainage latéral, bird-dog, curl-up (protège le dos)</span></li>
     <li><span class="n">Cardio mer. et sam.</span><span class="muted">25 min de marche rapide en côte ou de vélo. 40 min dès février, 4 × 4 min de fractionné 1 fois/sem. dès avril</span></li>
-    <li><span class="n">Pas de barre ?</span><span class="muted">Rowing un bras à la place des tractions. Achat conseillé : barre de traction de porte (~25 €), puis un banc</span></li>
+    <li><span class="n">Pas de barre ?</span><span class="muted">L'onglet Programme remplace les tractions tout seul (pull-over le lundi, rowing un bras le jeudi) tant que la case « J'ai une barre de traction » est décochée. Achat conseillé : barre de traction de porte (~25 €), puis un banc</span></li>
     <li><span class="n">Haltères trop légers</span><span class="muted">À la maison : plus de répétitions, descente en 3–4 s, pause de 1 s en bas</span></li>
   </ul></div>
 
@@ -2557,6 +2653,8 @@ document.addEventListener('click', ev => {
     case 'coach': return coachOpen(d.ex, d.e);
     case 'coplay': case 'corestart': case 'cotempo': case 'cosound': return coAction(d.act, d.v);
     case 'codone': return coDone();
+    case 'coautonow': return CO && coValidate();
+    case 'coautocancel': if (CO) { CO.mode = null; coPanel(); } return;
     case 'fiche': return modal(`<h2>${esc(d.ex)}</h2>${ficheHtml(d.ex)}<div class="row" style="margin-top:14px"><div class="spacer"></div><button class="btn" data-act="close">Fermer</button></div>`);
     case 'discard': return confirmBox('Abandonner la séance en cours ? Rien ne sera enregistré.', () => { S.active = null; stopRest(); save(); go('home'); }, 'Abandonner');
     case 'toggle': {
@@ -2634,6 +2732,8 @@ document.addEventListener('input', ev => {
 });
 document.addEventListener('change', ev => {
   if (ev.target.id === 'pstartdate' && ev.target.value) { progState().start = ev.target.value; save(); return render(); }
+  if (ev.target.id === 'pbar') { progState().bar = ev.target.checked; save(); return render(); }
+  if (ev.target.id === 'coautochk' && CO) { CO.auto = ev.target.checked; coSavePrefs(); return; }
   if (ev.target.id === 'importfile') {
     const f = ev.target.files[0]; if (!f) return;
     f.text().then(txt => {
