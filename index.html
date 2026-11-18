@@ -820,8 +820,8 @@ function vHome() {
   const pn = progNext();
   let h = '';
   if (pn) {
-    const [w, d] = pn, D = PROG_DAYS[d], r = progSession(w, d), isToday = D.dow === today;
-    const planned = PROG_DAYS.some(x => x.dow === today);
+    const [w, d] = pn, D = PROG_DAYS[d], r = progSession(w, d), isToday = progDow(d) === today;
+    const planned = PROG_DAYS.some((_, i) => progDow(i) === today);
     h += `<p class="kicker">${esc(date)} · ${isToday ? 'ta séance du jour' : planned ? 'ta prochaine séance' : 'jour de repos prévu — ou fais ta prochaine séance'}</p>
       <h1>${esc(D.name)}</h1>
       <div class="todaycard">
@@ -854,7 +854,7 @@ function exPreview(exs) {
 function weekDots(w) {
   const done = progState().done, n = PROG_DAYS.filter((_, d) => done[w + '-' + d]).length;
   return `<div class="weekdots"><span class="muted small">Semaine ${w + 1} du programme</span>
-    ${PROG_DAYS.map((D, d) => `<span class="wd ${done[w + '-' + d] ? 'ok' : ''}">${done[w + '-' + d] ? '✓' : '○'} ${DAYS[D.dow]}</span>`).join('')}
+    ${PROG_DAYS.map((D, d) => `<span class="wd ${done[w + '-' + d] ? 'ok' : ''}">${done[w + '-' + d] ? '✓' : '○'} ${DAYS[progDow(d)]}</span>`).join('')}
     <span class="muted small">${n} / ${PROG_DAYS.length} faites</span></div>`;
 }
 function routineCard(r) {
@@ -1189,7 +1189,10 @@ function start(rid) {
 }
 function startProg(key) {
   if (S.active) return go('session');
-  const [w, d] = key.split('-').map(Number), r = progSession(w, d);
+  const [w, d] = key.split('-').map(Number), P = progState();
+  // toute 1re séance du programme fixe le jour de départ : aujourd'hui
+  if (key === '0-0' && !Object.keys(P.done).length) { P.start = isoDay(new Date()); P.anchored = true; }
+  const r = progSession(w, d);
   S.active = {id: uid(), routineId: null, prog: key, title: r.name, startedAt: Date.now(), pausedAt: null, pausedTotal: 0,
     ex: r.exercises.map(newActiveEx)};
   progState(); save(); go('session');
@@ -1444,8 +1447,19 @@ const roundKg = kg => Math.max(2, Math.round(kg / 2) * 2); // haltères : par pa
 function progState() {
   // nouveau programme → on repart de la semaine 1 cette semaine (l'historique des séances n'est pas touché)
   if (!S.program || S.program.id !== PROG_ID) S.program = {id: PROG_ID, start: isoDay(mondayOf(new Date())), done: {}};
-  return S.program;
+  const P = S.program;
+  // start = jour de la 1re séance : les jours suivent ce décalage (1re séance un mardi → Bas A le mercredi…).
+  // Programmes commencés avant ce réglage : on recale sur le jour où la 1re séance a vraiment été faite.
+  if (!P.anchored) {
+    const h = S.history.find(x => x.id === P.done['0-0']), a = S.active && S.active.prog === '0-0' ? S.active.startedAt : null;
+    const first = h ? h.date : a;
+    if (first) P.start = isoDay(new Date(first));
+    if (first || Object.keys(P.done).length) P.anchored = true;
+  }
+  return P;
 }
+// jour de la semaine (0 = dimanche) de la séance d du programme, décalé selon le jour de départ
+function progDow(d) { return (new Date(progState().start + 'T00:00').getDay() + PROG_DAYS[d].dow - PROG_DAYS[0].dow + 7) % 7; }
 // Repos (Helms, Pyramid p. 184 : au moins 2,5 min entre les séries d'un polyarticulaire, 1,5 min pour un petit muscle ;
 // NSCA p. 1254 : 3 min ont fait gagner plus de muscle que 1 min). Exercices tenus : 1 min.
 const ISOLATION = new Set(['Élévation latérale (haltère)', 'Curl biceps (haltère)', 'Leg curl glissé', 'Mollets une jambe',
@@ -1465,11 +1479,11 @@ function progSession(w, d) {
     return {name, type: sec ? 'time' : 'reps', rest: restFor(name, main, sec, PHASES[W.phase].force),
       note: 'avant la pause : ' + fmtSet({w: kg, r: sec ? 0 : reps, s: sec}), sets: Array.from({length: n}, () => ({...set}))};
   });
-  return {name: `Programme S${w + 1} – ${DAYS[D.dow]} : ${D.name}`, exercises: [warm(), ...ex]};
+  return {name: `Programme S${w + 1} – ${DAYS[progDow(d)]} : ${D.name}`, exercises: [warm(), ...ex]};
 }
 function progDate(w, d) {
   const x = new Date(progState().start + 'T00:00');
-  x.setDate(x.getDate() + w * 7 + (PROG_DAYS[d].dow - 1));
+  x.setDate(x.getDate() + w * 7 + (PROG_DAYS[d].dow - PROG_DAYS[0].dow));
   return x;
 }
 function progNext() {
@@ -1480,7 +1494,7 @@ function progNext() {
 function progCard(w, d, big) {
   const r = progSession(w, d), key = w + '-' + d, done = progState().done[key];
   return `<div class="card"><div class="row"><div style="flex:1;min-width:0">
-    <div class="exname">${done ? '✓ ' : ''}${DAYS[PROG_DAYS[d].dow]} — ${esc(PROG_DAYS[d].name)}</div>
+    <div class="exname">${done ? '✓ ' : ''}${DAYS[progDow(d)]} — ${esc(PROG_DAYS[d].name)}</div>
     <div class="muted small">Semaine ${w + 1} · prévue le ${esc(fmtDate(progDate(w, d), {weekday: 'short', day: 'numeric', month: 'short'}))} · ${r.exercises.length} exercices${done ? ' · faite' : ''}</div></div>
     <button class="btn ghost" data-act="pmark" data-key="${key}" title="${done ? 'Marquer comme pas faite' : 'Marquer comme faite (sans l\'enregistrer)'}">${done ? '↺' : '✓'}</button>
     ${done ? '' : `<button class="btn ${big ? 'primary big' : ''}" data-act="pstart" data-key="${key}" ${S.active ? 'disabled title="Une séance est déjà en cours"' : ''}>▶ Démarrer</button>`}</div>
@@ -1493,12 +1507,12 @@ function vProgram() {
   const P = S.program, total = PROG_WEEKS.length * PROG_DAYS.length, nDone = Object.keys(P.done).length;
   const next = progNext(), cur = openWeek ?? (next ? next[0] : PROG_WEEKS.length - 1);
   let h = `<h1>Mon programme</h1>
-    <p class="muted small">${PROG_WEEKS.length} semaines · ${PROG_DAYS.length} séances par semaine (lundi, mardi, jeudi, vendredi) · objectif +1 kg par mois. Mêmes exercices à la salle et à la maison :
+    <p class="muted small">${PROG_WEEKS.length} semaines · ${PROG_DAYS.length} séances par semaine (${PROG_DAYS.map((_, d) => DAYS[progDow(d)].toLowerCase()).join(', ')}, selon le jour de ta 1re séance) · objectif +1 kg par mois. Mêmes exercices à la salle et à la maison :
     à la salle, prends les haltères au poids prévu ; à la maison, si tes haltères (20 kg max) sont trop légers, ajoute des reps et descends en 3–4 s.
     Charges de référence = tes charges Hevy de fin 2025. Repos réglés pour chaque exercice : 2 min 30 sur les polyarticulaires (3 min en phase Force), 1 min 30 sur les petits muscles, 1 min sur les exercices tenus.</p>
     <div class="card"><div class="row"><div style="flex:1;min-width:200px"><div class="exname">${nDone} / ${total} séances faites</div>
       <div class="progress"><i style="width:${nDone / total * 100}%"></i></div></div>
-      <label class="small muted row" style="gap:6px">Début du programme <input type="date" class="field" id="pstartdate" value="${P.start}"></label>
+      <label class="small muted row" style="gap:6px">Jour de la 1re séance <input type="date" class="field" id="pstartdate" value="${P.start}"></label>
       <label class="small row barchk"><input type="checkbox" id="pbar" ${P.bar ? 'checked' : ''}> J'ai une barre de traction
         <span class="muted">${P.bar ? '(tractions au programme)' : '(sans barre : pull-over le lundi, rowing un bras le jeudi)'}</span></label></div></div>`;
   h += next ? `<h2>Prochaine séance</h2>${progCard(next[0], next[1], true)}`
@@ -2731,7 +2745,7 @@ document.addEventListener('input', ev => {
   }
 });
 document.addEventListener('change', ev => {
-  if (ev.target.id === 'pstartdate' && ev.target.value) { progState().start = ev.target.value; save(); return render(); }
+  if (ev.target.id === 'pstartdate' && ev.target.value) { const P = progState(); P.start = ev.target.value; P.anchored = true; save(); return render(); }
   if (ev.target.id === 'pbar') { progState().bar = ev.target.checked; save(); return render(); }
   if (ev.target.id === 'coautochk' && CO) { CO.auto = ev.target.checked; coSavePrefs(); return; }
   if (ev.target.id === 'importfile') {
