@@ -1,5 +1,5 @@
 // Garde l'appli dans le téléphone pour qu'elle s'ouvre sans internet.
-const CACHE = 'muscu-7e10be8570';
+const CACHE = 'muscu-d0cb8de65b';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-maskable.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -24,4 +24,12 @@ self.addEventListener('fetch', e => {
       return hit || net;
     })));
   }
+});
+// toucher la notification du repos ramène dans l'appli
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil(self.clients.matchAll({type: 'window', includeUncontrolled: true}).then(cs => {
+    const c = cs.find(x => 'focus' in x);
+    return c ? c.focus() : self.clients.openWindow('./');
+  }));
 });

@@ -339,6 +339,10 @@ button.picwrap .cap{color:var(--coal)}
 .coautochk{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;margin:8px 0 2px;min-height:44px}
 .coautochk input,.barchk input{width:20px;height:20px;flex:none}
 .barchk{gap:8px;width:100%;flex-wrap:wrap;min-height:44px}
+.seglbl{font-size:13px;font-weight:700;color:var(--muted);margin:10px 0 -2px}
+.timertools{gap:8px;align-items:center}
+.timertools .btn{min-height:44px}
+.pipvid{position:fixed;width:2px;height:2px;opacity:0;pointer-events:none;bottom:0;left:0}
 /* Savoir : fiches et principes */
 #modal .box{max-height:calc(100dvh - 32px);overflow-y:auto}
 .fiche-d{margin:10px 0 4px;border-top:1px solid var(--line)}
@@ -1216,6 +1220,7 @@ function vSession() {
       <button class="btn ghost danger" data-act="discard" title="Abandonner sans enregistrer">✕</button>
     </div></div>`;
   if (a.pausedAt) h += `<div class="banner">⏸ Séance en pause — le chrono est arrêté.</div>`;
+  h += timerTools();
   h += a.ex.map((e, ei) => exCard(e, ei, a)).join('');
   h += `<div class="card row"><input class="field" style="flex:1;min-width:220px" list="exnames" id="addex" placeholder="Ajouter un exercice… (ex : Gainage (planche))">
     <select class="field" id="addtype"><option value="reps">Répétitions</option><option value="time">Durée</option></select>
@@ -1292,6 +1297,87 @@ function saveSession() {
   ghPush('Séance du ' + fmtDate(a.startedAt, {day: 'numeric', month: 'short', year: 'numeric'}) + ' : ' + a.title);
 }
 
+/* ---------- Minuteur visible hors de l'appli ---------- */
+// Notification : quand tu quittes l'appli pendant un repos (temps restant + heure de reprise), puis « C'est reparti ».
+// Fenêtre flottante (image dans l'image) : un petit écran du minuteur par-dessus les autres applis, si l'appareil le permet.
+const canNotify = () => 'Notification' in window;
+const pipOk = () => !!(document.pictureInPictureEnabled && HTMLCanvasElement.prototype.captureStream);
+function timerTools() {
+  const n = canNotify() && Notification.permission !== 'denied', on = n && Notification.permission === 'granted';
+  if (!n && !pipOk()) return '';
+  return `<div class="card row timertools"><span class="small" style="flex:1;min-width:150px"><b>Minuteur hors de l'appli</b><br><span class="muted">pour voir le repos quand tu changes d'appli</span></span>
+    ${n ? `<button class="btn ${on ? 'ok' : ''}" data-act="notifon" ${on ? 'disabled' : ''}>🔔 ${on ? 'Notification activée' : 'Notification'}</button>` : ''}
+    ${pipOk() ? `<button class="btn" data-act="pip">⧉ ${pip ? 'Fermer la fenêtre' : 'Fenêtre flottante'}</button>` : ''}</div>`;
+}
+async function notifOn() {
+  try { const p = await Notification.requestPermission(); toast(p === 'granted' ? 'Le repos s\'affichera en notification quand tu quittes l\'appli' : 'Notifications refusées'); } catch (e) {}
+  render();
+}
+// la prochaine série à faire, pour la notification et la fenêtre
+function nextSetLabel() {
+  const A = S.active; if (!A) return '';
+  const e = A.ex.find(x => x.name !== 'Échauffement' && x.sets.some(y => !y.done)); if (!e) return '';
+  const i = e.sets.findIndex(y => !y.done);
+  return `${e.name} · série ${i + 1}/${e.sets.length}`;
+}
+const NOTIF_TAG = 'muscu-repos';
+var notifAt = 0; // var : tick() peut tourner avant cette ligne
+async function restNotif(end) {
+  if (!canNotify() || Notification.permission !== 'granted' || !rest) return;
+  notifAt = Date.now();
+  const left = rest.end - Date.now(), at = new Date(rest.end).toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'}), nx = nextSetLabel();
+  const title = end ? 'C\'est reparti 💪' : `Repos ${fmtClock(left + 999)} · reprise à ${at}`;
+  const opts = {tag: NOTIF_TAG, body: nx ? (end ? '' : 'Ensuite : ') + nx : 'Repos terminé', icon: 'icon-192.png', badge: 'icon-192.png',
+    renotify: end, silent: !end, requireInteraction: end, vibrate: end ? [300, 100, 300] : undefined, timestamp: rest.end, data: {url: location.href}};
+  try {
+    const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration();
+    if (reg) await reg.showNotification(title, opts); else new Notification(title, opts);
+  } catch (e) {}
+}
+async function restNotifClose() {
+  try { const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration(); if (reg) (await reg.getNotifications({tag: NOTIF_TAG})).forEach(n => n.close()); } catch (e) {}
+}
+// appelé par tick() : page cachée → notification mise à jour toutes les 15 s, puis une alerte à la fin du repos
+function restOutside() {
+  if (!document.hidden || !rest) return;
+  if (rest.end - Date.now() <= 0) { if (!rest.notifEnd) { rest.notifEnd = true; restNotif(true); } }
+  else if (Date.now() - notifAt > 15000) restNotif(false);
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden) { notifAt = 0; restOutside(); } else restNotifClose(); });
+
+var pip = null; // var : render() et tick() peuvent tourner avant cette ligne
+async function pipToggle() {
+  if (pip) { try { await document.exitPictureInPicture(); } catch (e) {} return pipClose(); }
+  const c = document.createElement('canvas'); c.width = 480; c.height = 270;
+  const v = document.createElement('video'); v.muted = true; v.playsInline = true; v.className = 'pipvid';
+  pip = {c, v, ctx: c.getContext('2d')}; pipDraw();
+  v.srcObject = c.captureStream(); document.body.appendChild(v);
+  try { await v.play(); await v.requestPictureInPicture(); }
+  catch (e) { pipClose(); return toast('La fenêtre flottante ne marche pas sur cet appareil'); }
+  v.addEventListener('leavepictureinpicture', pipClose, {once: true});
+  if (view === 'session') render();
+}
+function pipClose() {
+  if (!pip) return;
+  try { pip.v.srcObject.getTracks().forEach(t => t.stop()); } catch (e) {}
+  pip.v.remove(); pip = null;
+  if (view === 'session') render();
+}
+// dessin de la fenêtre : repos en cours, sinon le chrono de la séance
+function pipDraw() {
+  const {c, ctx} = pip, W = c.width, H = c.height, left = rest ? rest.end - Date.now() : 0, ring = !!rest && left <= 0;
+  const bg = ring ? '#00aa46' : rest ? '#000' : '#e1e1e1', fg = rest && !ring ? '#fff' : '#000';
+  const big = ring ? 'Go !' : rest ? fmtClock(left + 999) : S.active ? fmtClock(elapsed()) : '—';
+  const top = ring ? 'C\'EST REPARTI' : rest ? 'REPOS' : S.active ? (S.active.pausedAt ? 'SÉANCE EN PAUSE' : 'SÉANCE') : 'MUSCU';
+  if (pip.last === top + big) return; pip.last = top + big;
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = fg; ctx.textAlign = 'center';
+  ctx.font = '700 28px "Inter Tight", system-ui, sans-serif'; ctx.fillText(top, W / 2, 56);
+  ctx.font = '800 120px "Inter Tight", system-ui, sans-serif'; ctx.fillText(big, W / 2, 178);
+  const nx = nextSetLabel();
+  if (nx) { ctx.font = '600 24px "Inter Tight", system-ui, sans-serif'; ctx.fillText((nx.length > 34 ? nx.slice(0, 33) + '…' : nx), W / 2, 238); }
+}
+
 /* ---------- Minuteur de repos / effort ---------- */
 let rest = null; // {end, label}
 function startRest(sec, label) {
@@ -1317,6 +1403,8 @@ function tick() {
   const mini = $('#miniclock');
   mini.hidden = !S.active || view === 'session';
   if (S.active) mini.textContent = (S.active.pausedAt ? '⏸ ' : '● ') + txt;
+  restOutside();
+  if (pip) { if (!S.active && !rest) pipToggle(); else pipDraw(); }
   const bar = $('#restbar');
   if (rest) {
     const left = rest.end - Date.now();
@@ -1687,8 +1775,8 @@ const smooth = u => u * u * (3 - 2 * u);
 
 // état du coach
 let CO = null, coAudio = null, coRaf = 0;
-function coPrefs() { const def = {tempo: 'normal', sound: 'off', auto: 'on'}; try { return Object.assign(def, JSON.parse(localStorage.getItem('muscu.coach') || '{}')); } catch (e) { return def; } }
-function coSavePrefs() { try { localStorage.setItem('muscu.coach', JSON.stringify({tempo: CO.tempo, sound: CO.sound, auto: CO.auto ? 'on' : 'off'})); } catch (e) {} }
+function coPrefs() { const def = {tempo: 'normal', sound: 'off', auto: 'on', prep: 10}; try { return Object.assign(def, JSON.parse(localStorage.getItem('muscu.coach') || '{}')); } catch (e) { return def; } }
+function coSavePrefs() { try { localStorage.setItem('muscu.coach', JSON.stringify({tempo: CO.tempo, sound: CO.sound, auto: CO.auto ? 'on' : 'off', prep: CO.prep})); } catch (e) {} }
 function coTone(f, d = .12, v = .22) {
   try {
     coAudio = coAudio || new (window.AudioContext || window.webkitAudioContext)();
@@ -1714,7 +1802,7 @@ function coachOpen(name, ei, autoplay) {
   const hold = fr.length === 1 || (e ? e.type === 'time' : !!(ref && ref[3]));
   const pr = coPrefs();
   CO = {name, key, fr, hold, ei: e ? +ei : null, si, playing: !!autoplay || !matchMedia('(prefers-reduced-motion: reduce)').matches, tempo: pr.tempo, sound: pr.sound,
-    auto: pr.auto !== 'off', mode: null,
+    auto: pr.auto !== 'off', mode: null, prep: +pr.prep || 0, pt: 0, prepSec: null,
     target: hold ? ((set && +set.s) || (ref && ref[3]) || 40) : ((set && +set.r) || (ref && ref[2]) || 0),
     setLabel: e && set ? `Série ${si + 1}/${e.sets.length}` : '', t: 0, last: null, idx: -1, rep: 0, done: false};
   CO.nextTick = Math.floor((CO.target - 1) / 10) * 10;
@@ -1733,6 +1821,8 @@ function coachOpen(name, ei, autoplay) {
       <button class="btn ghost" data-act="corestart" title="Recommencer à zéro">↺</button>
     </div>
     ${hold ? '' : `<div class="seg" role="group" aria-label="Tempo">${Object.entries(TEMPOS).map(([k, v]) => `<button class="${CO.tempo === k ? 'on' : ''}" data-act="cotempo" data-v="${k}">${esc(v.label)}</button>`).join('')}</div>`}
+    <div class="seglbl">Préparation avant la série</div>
+    <div class="seg" role="group" aria-label="Préparation">${[0, 5, 10, 15].map(p => `<button class="${CO.prep === p ? 'on' : ''}" data-act="coprep" data-v="${p}">${p ? p + ' s' : 'Aucune'}</button>`).join('')}</div>
     <div class="seg" role="group" aria-label="Son">${[['off', '🔇 Muet'], ['beep', '🔔 Bips'], ['voice', '🗣 Voix']].map(([k, l]) => `<button class="${CO.sound === k ? 'on' : ''}" data-act="cosound" data-v="${k}">${l}</button>`).join('')}</div>
     ${CO.ei != null && set ? `<button class="btn ok cta" id="codone" data-act="codone">✓ Valider la ${esc(CO.setLabel.toLowerCase())}</button>
     <label class="coautochk"><input type="checkbox" id="coautochk" ${CO.auto ? 'checked' : ''}> Valider et enchaîner tout seul : repos, puis série suivante</label>` : ''}
@@ -1764,8 +1854,16 @@ function coFrame(ts) {
   if (!CO || !document.getElementById('coach') || $('#modal').hidden) { coStop(); return; }
   const cur = CO;
   const dt = CO.last == null ? 0 : Math.min(.1, (ts - CO.last) / 1000); CO.last = ts;
-  if (CO.playing && !CO.done) CO.t += dt;
+  if (CO.playing && !CO.done) {
+    if (CO.pt < CO.prep) { CO.pt += dt; if (CO.pt >= CO.prep) coSound('con', 'C\'est parti'); }
+    else CO.t += dt;
+  }
   const bar = document.getElementById('cobar');
+  if (!CO.done && CO.pt < CO.prep) {
+    coPrepFrame(bar);
+    const pb = document.getElementById('coplay'), t = CO.playing ? '⏸ Pause' : '▶ Lancer'; if (pb && pb.textContent !== t) pb.textContent = t;
+    coRaf = requestAnimationFrame(coFrame); return;
+  }
   if (CO.hold) {
     const left = Math.max(0, CO.target - CO.t), cues = (PHASE_CUES[CO.name] || {}).t || (FICHES[CO.name] ? FICHES[CO.name].cues : ['Tiens la position']);
     coDraw(CO.fr.length > 1 ? (Math.sin(CO.t * Math.PI / .6) + 1) / 2 : 0);
@@ -1776,7 +1874,7 @@ function coFrame(ts) {
     if (CO.playing && !CO.done && left <= CO.nextTick && left > .5) { coSound('tick', `${CO.nextTick} secondes`); CO.nextTick -= 10; }
     if (!CO.done && left <= 0) coFinish();
   } else {
-    const P = CO.phases, cyc = P.reduce((s, p) => s + p.d, 0), prep = 1.2;
+    const P = CO.phases, cyc = P.reduce((s, p) => s + p.d, 0), prep = CO.prep ? .4 : 1.2;
     let v = P[0].a, label = 'Mets-toi en place', cue = 'Position de départ', frac = 0;
     if (CO.t >= prep) {
       const tt = CO.t - prep, n = Math.floor(tt / cyc);
@@ -1810,8 +1908,21 @@ function coFrame(ts) {
   if (pb) { const t = {confirm: '✓ Valider', rest: '▶ Série suivante', end: '✓ Fini'}[CO.mode] || (CO.done ? '↺ Encore' : CO.playing ? '⏸ Pause' : '▶ Lancer'); if (pb.textContent !== t) pb.textContent = t; }
   coRaf = requestAnimationFrame(coFrame);
 }
+// décompte de préparation : la voix annonce la série, puis 3, 2, 1
+function coPrepFrame(bar) {
+  const sec = Math.ceil(CO.prep - CO.pt);
+  coDraw(CO.hold || !CO.phases ? 0 : CO.phases[0].a);
+  coSet('cophase', 'Prépare-toi');
+  coSet('corep', `Départ dans ${sec} s${CO.setLabel ? ' · ' + CO.setLabel : ''}`);
+  coSet('cocue', CO.playing ? 'Prends tes charges et mets-toi en position de départ' : `Touche « Lancer » : tu auras ${CO.prep} s pour te mettre en place`);
+  if (bar) bar.style.width = CO.pt / CO.prep * 100 + '%';
+  if (!CO.playing || sec === CO.prepSec) return;
+  CO.prepSec = sec;
+  if (sec === Math.ceil(CO.prep)) CO.sound === 'voice' ? coSay(`Prépare-toi. ${CO.setLabel ? CO.setLabel.replace('/', ' sur ') + '. ' : ''}Départ dans ${sec} secondes`) : coSound('tick');
+  else if (sec <= 3) CO.sound === 'voice' ? coSay(String(sec)) : coSound('tick');
+}
 function coStop() { try { speechSynthesis.cancel(); } catch (e) {} CO = null; const b = $('#modalbox'); if (b && $('#modal').hidden) b.classList.remove('wide'); }
-function coRestart() { if (!CO) return; Object.assign(CO, {t: 0, idx: -1, rep: 0, done: false, last: null, playing: true, mode: null, nextTick: Math.floor((CO.target - 1) / 10) * 10}); coPanel(); }
+function coRestart() { if (!CO) return; Object.assign(CO, {t: 0, idx: -1, rep: 0, done: false, last: null, playing: true, mode: null, pt: 0, prepSec: null, nextTick: Math.floor((CO.target - 1) / 10) * 10}); coPanel(); }
 function coAction(act, v) {
   if (!CO) return;
   if (act === 'coplay') {
@@ -1821,6 +1932,7 @@ function coAction(act, v) {
     if (CO.done) coRestart(); else CO.playing = !CO.playing; if (CO.playing) coTone(0, .001, .0001); return;
   }
   if (act === 'corestart') return coRestart();
+  if (act === 'coprep') { CO.prep = +v; if (!CO.t && !CO.done) Object.assign(CO, {pt: 0, prepSec: null}); }
   if (act === 'cotempo') { CO.tempo = v; CO.phases = coPhases(); coRestart(); }
   if (act === 'cosound') { CO.sound = v; if (v === 'beep') coTone(660, .08); if (v === 'voice') coSay('Voix activée'); }
   coSavePrefs();
@@ -1868,7 +1980,7 @@ function coNext() {
   CO.si = n.si; CO.target = CO.hold ? (+set.s || CO.target) : (+set.r || CO.target);
   CO.setLabel = `Série ${n.si + 1}/${e.sets.length}`;
   const cd = document.getElementById('codone'); if (cd) cd.textContent = '✓ Valider la ' + CO.setLabel.toLowerCase();
-  if (CO.sound === 'voice') coSay(CO.setLabel.replace('/', ' sur '));
+  if (CO.sound === 'voice' && !CO.prep) coSay(CO.setLabel.replace('/', ' sur '));
   coRestart();
 }
 function coAutoStep() {
@@ -1882,7 +1994,7 @@ function coAutoStep() {
     if (sec !== CO.lastSec) {
       CO.lastSec = sec;
       if (sec === 30 && CO.sound === 'voice') coSay('30 secondes');
-      if (sec === 10) CO.sound === 'voice' ? coSay('10 secondes, mets-toi en place') : coSound('tick');
+      if (sec === 10) CO.sound === 'voice' ? coSay('10 secondes') : coSound('tick');
     }
     if (left <= 0) coNext();
   }
@@ -2665,7 +2777,7 @@ document.addEventListener('click', ev => {
     case 'save': return saveSession();
     case 'close': return closeModal();
     case 'coach': return coachOpen(d.ex, d.e);
-    case 'coplay': case 'corestart': case 'cotempo': case 'cosound': return coAction(d.act, d.v);
+    case 'coplay': case 'corestart': case 'cotempo': case 'cosound': case 'coprep': return coAction(d.act, d.v);
     case 'codone': return coDone();
     case 'coautonow': return CO && coValidate();
     case 'coautocancel': if (CO) { CO.mode = null; coPanel(); } return;
@@ -2689,7 +2801,9 @@ document.addEventListener('click', ev => {
       save(); render(); return;
     }
     case 'rest-add': if (rest) { rest.end += +d.v * 1000; rest.rung = false; $('#restbar').classList.remove('ring'); tick(); } return;
-    case 'rest-skip': return stopRest();
+    case 'rest-skip': restNotifClose(); return stopRest();
+    case 'notifon': return notifOn();
+    case 'pip': return pipToggle();
     case 'stper': ST.per = d.v; ST.off = 0; return render();
     case 'stmet': ST.metric = d.v; return render();
     case 'sttable': ST.table = !ST.table; return render();
