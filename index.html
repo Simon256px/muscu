@@ -343,6 +343,29 @@ button.picwrap .cap{color:var(--coal)}
 .timertools{gap:8px;align-items:center}
 .timertools .btn{min-height:44px}
 .pipvid{position:fixed;width:2px;height:2px;opacity:0;pointer-events:none;bottom:0;left:0}
+.think{background:var(--paper);border-left:4px solid var(--violet);border-radius:12px;padding:10px 12px;margin:10px 0 6px;font-size:14.5px;line-height:1.4}
+.think ol{margin:6px 0 0;padding-left:20px}
+.think li{margin:3px 0}
+.think .avoid{margin-top:6px;font-size:13.5px;color:var(--muted)}
+.costeps{display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center}
+.costeps figure{margin:0;background:var(--white);border:1.5px solid var(--line);border-radius:16px;padding:6px;text-align:center}
+.costeps svg{width:100%;max-width:150px;aspect-ratio:1;color:var(--coal)}
+.costeps .pr{stroke-width:2.5;opacity:.55}
+.costeps figcaption{font-size:13px;font-weight:700}
+.coarrow{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:var(--muted);text-align:center;max-width:76px}
+.jform{display:flex;flex-direction:column;gap:12px}
+.jform label{display:flex;flex-direction:column;gap:4px;font-size:14px;font-weight:600}
+.jform .field{width:100%}
+.jlbl{display:block;font-size:14px;font-weight:600;margin-bottom:4px}
+.jseg{display:flex;flex-wrap:wrap;gap:6px}
+.jseg button{flex:1;min-height:44px;border:1.5px solid var(--line);background:var(--white);color:var(--coal);border-radius:12px;font:inherit;font-size:14px;font-weight:600;cursor:pointer;padding:6px 8px}
+.jseg button.on{background:var(--coal);border-color:var(--coal);color:#fff}
+.rv{display:flex;flex-direction:column;gap:8px}
+.rvi{display:flex;gap:10px;align-items:flex-start;background:var(--white);border:1.5px solid var(--line);border-radius:16px;padding:10px 12px}
+.rvi .ic{font-size:22px;line-height:1.2}
+.rvi b{display:block;margin-bottom:2px}
+.rvi .btn{margin-top:8px}
+.rvt{grid-template-columns:repeat(auto-fit,minmax(96px,1fr))}
 /* Savoir : fiches et principes */
 #modal .box{max-height:calc(100dvh - 32px);overflow-y:auto}
 .fiche-d{margin:10px 0 4px;border-top:1px solid var(--line)}
@@ -824,9 +847,8 @@ function vHome() {
   const pn = progNext();
   let h = '';
   if (pn) {
-    const [w, d] = pn, D = PROG_DAYS[d], r = progSession(w, d), isToday = progDow(d) === today;
-    const planned = PROG_DAYS.some((_, i) => progDow(i) === today);
-    h += `<p class="kicker">${esc(date)} · ${isToday ? 'ta séance du jour' : planned ? 'ta prochaine séance' : 'jour de repos prévu — ou fais ta prochaine séance'}</p>
+    const [w, d] = pn, D = PROG_DAYS[d], r = progSession(w, d), when = progDate(w, d), isToday = isoDay(when) === isoDay(now);
+    h += `<p class="kicker">${esc(date)} · ${isToday ? 'ta séance du jour' : `repos aujourd'hui — prochaine séance ${esc(fmtDate(when, {weekday: 'long', day: 'numeric'}))}, ou fais-la maintenant`}</p>
       <h1>${esc(D.name)}</h1>
       <div class="todaycard">
         <div class="meta">${chip('📅 Programme · semaine ' + (w + 1))}${chip('⏱ ≈ ' + estimate(r) + ' min')}${chip(r.exercises.length + ' exercices')}</div>
@@ -838,11 +860,13 @@ function vHome() {
     h += `<p class="kicker">${esc(date)}</p><h1>Programme terminé 🏆</h1>
       <div class="todaycard"><p>Bravo, tu as fait les ${PROG_WEEKS.length * PROG_DAYS.length} séances. Choisis une routine ou relance le programme dans l'onglet Programme.</p></div>`;
   }
+  h += journalHome() + reviewHome();
   const todays = S.routines.filter(r => r.day === today);
   if (todays.length) h += `<h2>Ta routine du ${DAYS[today].toLowerCase()}</h2>` + todays.map(routineCard).join('');
   h += `<h2>Envie d'autre chose ?</h2><div class="row">
     <button class="btn" data-go="routines">📋 Choisir une de mes routines</button>
-    <button class="btn" data-act="start" data-id="">＋ Séance libre</button></div>`;
+    <button class="btn" data-act="start" data-id="">＋ Séance libre</button>
+    <button class="btn" data-act="actadd">🏃 Activité déjà faite</button></div>`;
   return h;
 }
 const chip = t => `<span class="chipinfo">${esc(t)}</span>`;
@@ -858,7 +882,7 @@ function exPreview(exs) {
 function weekDots(w) {
   const done = progState().done, n = PROG_DAYS.filter((_, d) => done[w + '-' + d]).length;
   return `<div class="weekdots"><span class="muted small">Semaine ${w + 1} du programme</span>
-    ${PROG_DAYS.map((D, d) => `<span class="wd ${done[w + '-' + d] ? 'ok' : ''}">${done[w + '-' + d] ? '✓' : '○'} ${DAYS[progDow(d)]}</span>`).join('')}
+    ${PROG_DAYS.map((D, d) => `<span class="wd ${done[w + '-' + d] ? 'ok' : ''}">${done[w + '-' + d] ? '✓' : '○'} ${DAYS[progDow(w, d)]}</span>`).join('')}
     <span class="muted small">${n} / ${PROG_DAYS.length} faites</span></div>`;
 }
 function routineCard(r) {
@@ -1242,6 +1266,7 @@ function exCard(e, ei, a) {
         <button class="btn ghost" data-act="exup" data-e="${ei}" title="Monter">↑</button>
         <button class="btn ghost" data-act="exdel" data-e="${ei}" title="Retirer l'exercice">🗑</button></div>
     </div>
+  ${thinkList(e.name)}
   ${ficheDetails(e.name)}
   <table class="sets"><thead><tr><th>Série</th><th class="prev">Précédent</th><th>kg</th><th>${t ? 'Secondes' : 'Reps'}</th><th></th></tr></thead><tbody>
   ${e.sets.map((x, si) => `<tr class="${x.done ? 'done' : ''}">
@@ -1546,34 +1571,62 @@ function progState() {
   }
   return P;
 }
-// jour de la semaine (0 = dimanche) de la séance d du programme, décalé selon le jour de départ
-function progDow(d) { return (new Date(progState().start + 'T00:00').getDay() + PROG_DAYS[d].dow - PROG_DAYS[0].dow + 7) % 7; }
+// Dates des séances (plan glissant) : une séance faite = le jour où tu l'as vraiment faite ; la prochaine = le jour
+// prévu, au plus tôt aujourd'hui (ou le jour que tu as choisi) ; les suivantes gardent l'écart du programme
+// (A → B le lendemain, etc.) à partir de la dernière séance. Un retard ou une séance déplacée décale toute la suite.
+const progOff = k => 7 * Math.floor(k / PROG_DAYS.length) + PROG_DAYS[k % PROG_DAYS.length].dow - PROG_DAYS[0].dow;
+let progMemo = null;
+function progDates() {
+  const P = progState(), today = startOfDay(new Date()), N = PROG_WEEKS.length * PROG_DAYS.length;
+  const sig = JSON.stringify([P.start, P.done, P.next || null, isoDay(today), S.history.length]);
+  if (progMemo && progMemo.sig === sig) return progMemo.d;
+  const out = []; let aD = new Date(P.start + 'T00:00'), aK = 0, nextSeen = false;
+  const at = k => { const x = new Date(aD); x.setDate(x.getDate() + progOff(k) - progOff(aK)); return x; };
+  for (let k = 0; k < N; k++) {
+    const key = Math.floor(k / PROG_DAYS.length) + '-' + k % PROG_DAYS.length, id = P.done[key];
+    let d;
+    if (id) { const h = S.history.find(x => x.id === id); d = h ? startOfDay(new Date(h.date)) : at(k); aD = d; aK = k; }
+    else if (!nextSeen) {
+      nextSeen = true;
+      d = P.next && P.next.key === key ? new Date(P.next.date + 'T00:00') : at(k);
+      if (d < today) d = today;
+      aD = d; aK = k;
+    } else d = at(k);
+    out.push(d);
+  }
+  progMemo = {sig, d: out};
+  return out;
+}
+// jour de la semaine (0 = dimanche) de la séance d de la semaine w
+function progDow(w, d) { return progDates()[w * PROG_DAYS.length + d].getDay(); }
+// les jours de séance de la semaine en cours du programme, ex. « mar, mer, ven, sam »
+function progWeekDays(short) {
+  const nx = progNext(), w = nx ? nx[0] : PROG_WEEKS.length - 1;
+  return PROG_DAYS.map((_, d) => { const n = DAYS[progDow(w, d)].toLowerCase(); return short ? n.slice(0, 3) : n; }).join(', ');
+}
 // Repos (Helms, Pyramid p. 184 : au moins 2,5 min entre les séries d'un polyarticulaire, 1,5 min pour un petit muscle ;
 // NSCA p. 1254 : 3 min ont fait gagner plus de muscle que 1 min). Exercices tenus : 1 min.
 const ISOLATION = new Set(['Élévation latérale (haltère)', 'Curl biceps (haltère)', 'Leg curl glissé', 'Mollets une jambe',
   'Oiseau / Y-raise (haltère)', 'Extension triceps (haltère)', 'Curl marteau (haltère)', 'Pull-over (haltère)']);
 const restFor = (name, main, sec, force) => sec ? 60 : ISOLATION.has(name) ? 90 : main && force ? 180 : 150;
 function progSession(w, d) {
-  const W = PROG_WEEKS[w], D = PROG_DAYS[d], bar = progState().bar;
+  const W = PROG_WEEKS[w], D = PROG_DAYS[d], P = progState(), bar = P.bar, adj = P.adj || {}, light = (P.light || {})[w];
   const ex = D.ex.map(([name0, kg0, reps0, sec, main, alt]) => {
     // sans barre de traction, on prend le remplaçant prévu pour ce jour-là
     const [name, kg, reps] = alt && !bar ? alt : [name0, kg0, reps0];
-    const [n, r] = main ? W.main : W.acc;
-    const pct = main ? W.pct : Math.min(W.pct, W.accPct ?? W.pct);
+    let [n, r] = main ? W.main : W.acc;
+    if (light) n = Math.max(2, n - 1); // semaine allégée par le bilan : une série de moins et −10 %
+    const pct = (main ? W.pct : Math.min(W.pct, W.accPct ?? W.pct)) * (light ? .9 : 1);
     const set = sec ? {w: 0, r: 0, s: Math.max(15, Math.round(sec * pct / 5) * 5)}
       // près de 100 % on ne demande pas plus de reps que ce que tu faisais avant à cette charge
-      : kg ? {w: roundKg(kg * pct), r: Math.max(3, Math.min(r, reps + Math.round((1 - pct) * 30))), s: 0}
+      : kg ? {w: Math.max(2, roundKg(kg * pct) + (adj[name] || 0)), r: Math.max(3, Math.min(r, reps + Math.round((1 - pct) * 30))), s: 0}
       : {w: 0, r: Math.max(3, Math.round(reps * pct)), s: 0}; // poids du corps : les reps suivent le %
     return {name, type: sec ? 'time' : 'reps', rest: restFor(name, main, sec, PHASES[W.phase].force),
-      note: 'avant la pause : ' + fmtSet({w: kg, r: sec ? 0 : reps, s: sec}), sets: Array.from({length: n}, () => ({...set}))};
+      note: 'avant la pause : ' + fmtSet({w: kg, r: sec ? 0 : reps, s: sec}) + (adj[name] ? ` · bilan ${adj[name] > 0 ? '+' : ''}${adj[name]} kg` : '') + (light ? ' · semaine allégée' : ''), sets: Array.from({length: n}, () => ({...set}))};
   });
-  return {name: `Programme S${w + 1} – ${DAYS[progDow(d)]} : ${D.name}`, exercises: [warm(), ...ex]};
+  return {name: `Programme S${w + 1} – ${DAYS[progDow(w, d)]} : ${D.name}`, exercises: [warm(), ...ex]};
 }
-function progDate(w, d) {
-  const x = new Date(progState().start + 'T00:00');
-  x.setDate(x.getDate() + w * 7 + (PROG_DAYS[d].dow - PROG_DAYS[0].dow));
-  return x;
-}
+function progDate(w, d) { return new Date(progDates()[w * PROG_DAYS.length + d]); }
 function progNext() {
   const done = progState().done;
   for (let w = 0; w < PROG_WEEKS.length; w++) for (let d = 0; d < PROG_DAYS.length; d++) if (!done[w + '-' + d]) return [w, d];
@@ -1582,8 +1635,8 @@ function progNext() {
 function progCard(w, d, big) {
   const r = progSession(w, d), key = w + '-' + d, done = progState().done[key];
   return `<div class="card"><div class="row"><div style="flex:1;min-width:0">
-    <div class="exname">${done ? '✓ ' : ''}${DAYS[progDow(d)]} — ${esc(PROG_DAYS[d].name)}</div>
-    <div class="muted small">Semaine ${w + 1} · prévue le ${esc(fmtDate(progDate(w, d), {weekday: 'short', day: 'numeric', month: 'short'}))} · ${r.exercises.length} exercices${done ? ' · faite' : ''}</div></div>
+    <div class="exname">${done ? '✓ ' : ''}${DAYS[progDow(w, d)]} — ${esc(PROG_DAYS[d].name)}</div>
+    <div class="muted small">Semaine ${w + 1} · ${done ? 'faite' : 'prévue'} le ${esc(fmtDate(progDate(w, d), {weekday: 'short', day: 'numeric', month: 'short'}))} · ${r.exercises.length} exercices</div></div>
     <button class="btn ghost" data-act="pmark" data-key="${key}" title="${done ? 'Marquer comme pas faite' : 'Marquer comme faite (sans l\'enregistrer)'}">${done ? '↺' : '✓'}</button>
     ${done ? '' : `<button class="btn ${big ? 'primary big' : ''}" data-act="pstart" data-key="${key}" ${S.active ? 'disabled title="Une séance est déjà en cours"' : ''}>▶ Démarrer</button>`}</div>
     <ul class="exlist">${r.exercises.map(e => `<li><span class="n">${esc(e.name)}${e.name !== 'Échauffement' ? ` <span class="muted small">(${esc(e.note)})</span>` : ''}</span>
@@ -1595,15 +1648,16 @@ function vProgram() {
   const P = S.program, total = PROG_WEEKS.length * PROG_DAYS.length, nDone = Object.keys(P.done).length;
   const next = progNext(), cur = openWeek ?? (next ? next[0] : PROG_WEEKS.length - 1);
   let h = `<h1>Mon programme</h1>
-    <p class="muted small">${PROG_WEEKS.length} semaines · ${PROG_DAYS.length} séances par semaine (${PROG_DAYS.map((_, d) => DAYS[progDow(d)].toLowerCase()).join(', ')}, selon le jour de ta 1re séance) · objectif +1 kg par mois. Mêmes exercices à la salle et à la maison :
+    <p class="muted small">${PROG_WEEKS.length} semaines · ${PROG_DAYS.length} séances par semaine (cette semaine : ${progWeekDays()} ; les jours suivent les séances que tu as vraiment faites) · objectif +1 kg par mois. Mêmes exercices à la salle et à la maison :
     à la salle, prends les haltères au poids prévu ; à la maison, si tes haltères (20 kg max) sont trop légers, ajoute des reps et descends en 3–4 s.
     Charges de référence = tes charges Hevy de fin 2025. Repos réglés pour chaque exercice : 2 min 30 sur les polyarticulaires (3 min en phase Force), 1 min 30 sur les petits muscles, 1 min sur les exercices tenus.</p>
     <div class="card"><div class="row"><div style="flex:1;min-width:200px"><div class="exname">${nDone} / ${total} séances faites</div>
       <div class="progress"><i style="width:${nDone / total * 100}%"></i></div></div>
-      <label class="small muted row" style="gap:6px">Jour de la 1re séance <input type="date" class="field" id="pstartdate" value="${P.start}"></label>
+      ${nDone ? '' : `<label class="small muted row" style="gap:6px">Jour de la 1re séance <input type="date" class="field" id="pstartdate" value="${P.start}"></label>`}
       <label class="small row barchk"><input type="checkbox" id="pbar" ${P.bar ? 'checked' : ''}> J'ai une barre de traction
-        <span class="muted">${P.bar ? '(tractions au programme)' : '(sans barre : pull-over le lundi, rowing un bras le jeudi)'}</span></label></div></div>`;
-  h += next ? `<h2>Prochaine séance</h2>${progCard(next[0], next[1], true)}`
+        <span class="muted">${P.bar ? '(tractions au programme)' : '(sans barre : pull-over en Haut du corps A, rowing un bras en Haut du corps B)'}</span></label></div></div>`;
+  h += next ? `<h2>Prochaine séance</h2>${progCard(next[0], next[1], true)}
+    <label class="small muted row" style="gap:6px;margin:-4px 0 8px">Déplacer cette séance au <input type="date" class="field" id="pnextdate" value="${isoDay(progDate(next[0], next[1]))}" min="${isoDay(new Date())}"></label>`
     : `<div class="card"><div class="exname">🏆 Programme terminé !</div><div class="muted small">Tu as retrouvé tes charges d'avant. Tu peux changer la date de début pour le refaire avec de nouvelles références.</div></div>`;
   h += `<h2>Les ${PHASES.length} phases</h2><div class="stats" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">${PHASES.map(p => `<div class="stat"><b style="font-size:17px">${p.name}</b>
     <span class="muted small">${p.weeks}</span><p class="small" style="margin:6px 0 0">${p.text}</p></div>`).join('')}</div>
@@ -1826,6 +1880,7 @@ function coachOpen(name, ei, autoplay) {
     <div class="seg" role="group" aria-label="Son">${[['off', '🔇 Muet'], ['beep', '🔔 Bips'], ['voice', '🗣 Voix']].map(([k, l]) => `<button class="${CO.sound === k ? 'on' : ''}" data-act="cosound" data-v="${k}">${l}</button>`).join('')}</div>
     ${CO.ei != null && set ? `<button class="btn ok cta" id="codone" data-act="codone">✓ Valider la ${esc(CO.setLabel.toLowerCase())}</button>
     <label class="coautochk"><input type="checkbox" id="coautochk" ${CO.auto ? 'checked' : ''}> Valider et enchaîner tout seul : repos, puis série suivante</label>` : ''}
+    ${thinkList(name)}${coSteps(key, fr)}
     <h3>Muscles qui travaillent</h3>${muscleMap(name)}
     ${FICHES[name] ? `<details class="fiche-d"><summary>📖 La fiche complète</summary>${ficheHtml(name)}</details>` : ''}
     <div class="row" style="margin-top:14px"><div class="spacer"></div><button class="btn" data-act="close">Fermer</button></div></div>`);
@@ -2007,6 +2062,261 @@ function coPanel() {
   p.innerHTML = CO.mode === 'confirm' ? `<b id="coautotxt">Validation dans 4 s</b><div class="row"><button class="btn" data-act="coautocancel">Annuler</button><button class="btn ok" data-act="coautonow">✓ Valider maintenant</button></div>`
     : CO.mode === 'rest' ? `<b id="coautotxt">Repos</b><span class="muted small">Ensuite : ${esc(CO.nextLabel)}</span><div class="row"><button class="btn" data-act="rest-add" data-v="30">+30 s</button><button class="btn" data-act="rest-skip">Passer ⏭</button></div>`
     : CO.mode === 'end' ? `<b>Toutes les séries sont validées 💪</b><span class="muted small">Ferme le coach et touche « Terminer » pour enregistrer la séance.</span>` : '';
+}
+
+/* ---------- Journal de bord, activités et bilan de la semaine ---------- */
+// Le journal (S.journal[jour]) : sommeil, énergie, courbatures, repas, douleur, note libre ; le poids va dans S.weights.
+// Le bilan relit les 7 derniers jours (journal, pesées, séances, activités) et propose des réglages à appliquer d'un geste.
+const ACTIVITIES = ['Course à pied', 'Marche rapide', 'Vélo', 'Natation', 'Sport collectif', 'Autre activité'];
+function actForm() {
+  const t = isoDay(new Date());
+  modal(`<h2 style="margin-top:0">🏃 Activité déjà faite</h2>
+    <p class="small muted">Course, marche, vélo… Elle compte dans tes stats et ton bilan, sans toucher au programme.</p>
+    <div class="jform">
+      <label>Activité <select class="field" id="actkind">${ACTIVITIES.map(a => `<option>${esc(a)}</option>`).join('')}</select></label>
+      <label>Jour <input type="date" class="field" id="actday" value="${t}" max="${t}"></label>
+      <label>Durée en minutes <input class="field" id="actmin" inputmode="numeric" placeholder="25"></label>
+      <label>Distance en km (facultatif) <input class="field" id="actkm" inputmode="decimal" placeholder="4,5"></label>
+      <label>Note (facultatif) <input class="field" id="actnote" placeholder="Ressenti, allure…"></label>
+    </div>
+    <div class="row" style="margin-top:16px"><div class="spacer"></div><button class="btn" data-act="close">Annuler</button><button class="btn ok" data-act="actsave">Enregistrer</button></div>`);
+}
+function actSave() {
+  const num = id => parseFloat(String($(id).value || '').replace(',', '.'));
+  const min = num('#actmin'), km = num('#actkm');
+  if (!(min > 0 && min < 600)) return toast('Entre la durée en minutes, par ex. 25');
+  const day = $('#actday').value || isoDay(new Date()), kind = $('#actkind').value, note = $('#actnote').value.trim();
+  const t = day === isoDay(new Date()) ? new Date() : new Date(day + 'T18:00');
+  S.history.unshift({id: uid(), src: 'app', kind: 'cardio', title: kind + (km > 0 ? ` · ${kgf(km)} km` : ''), date: t.toISOString(), dur: Math.round(min * 60),
+    note, ex: [{name: kind, sets: [{w: 0, r: 0, s: Math.round(min * 60)}]}]});
+  S.history.sort((a, b) => new Date(b.date) - new Date(a.date));
+  save(); closeModal(); render(); toast('Activité enregistrée');
+  ghPush('Activité du ' + fmtDate(t, {day: 'numeric', month: 'short', year: 'numeric'}) + ' : ' + kind);
+}
+
+let JD = null; // brouillon du journal ouvert (choix par boutons)
+const JSORE = ['Aucune', 'Légères', 'Fortes'], JFOOD = ['Tout le plan', 'Presque', 'Pas assez'];
+function journalForm(day) {
+  day = day || isoDay(new Date());
+  const j = (S.journal || {})[day] || {}, W = S.weights || {};
+  JD = {day, energy: j.energy ?? null, sore: j.sore ?? null, food: j.food ?? null};
+  const pick = (k, labels, base) => `<div class="jseg" role="group">${labels.map((l, i) => `<button type="button" class="${JD[k] === i + base ? 'on' : ''}" data-act="jpick" data-k="${k}" data-v="${i + base}">${l}</button>`).join('')}</div>`;
+  modal(`<h2 style="margin-top:0">📝 Journal de bord</h2>
+    <div class="jform">
+      <label>Jour <input type="date" class="field" id="jday" value="${day}" max="${isoDay(new Date())}"></label>
+      <label>Poids du matin, en kg <input class="field" id="jkg" inputmode="decimal" value="${W[day] != null ? kgf(W[day]) : ''}" placeholder="55,0"></label>
+      <label>Sommeil, en heures <input class="field" id="jsleep" inputmode="decimal" value="${j.sleep != null ? kgf(j.sleep) : ''}" placeholder="8"></label>
+      <div><span class="jlbl">Énergie</span>${pick('energy', ['1 😫', '2 😕', '3 😐', '4 🙂', '5 🔥'], 1)}</div>
+      <div><span class="jlbl">Courbatures</span>${pick('sore', JSORE, 0)}</div>
+      <div><span class="jlbl">Repas du plan</span>${pick('food', JFOOD, 0)}</div>
+      <label>Douleur : où ? (vide si rien) <input class="field" id="jpain" value="${esc(j.pain || '')}" placeholder="ex. épaule droite, genou gauche"></label>
+      <label>Note du jour <textarea class="field" id="jnote" rows="3" placeholder="La séance, ton ressenti, ce qui a été facile ou dur, le stress, la faim…">${esc(j.note || '')}</textarea></label>
+    </div>
+    <p class="small muted" style="margin:10px 0 0">L'appli lit aussi ta note : « facile », « crevé », « mal à l'épaule », « pas faim »… comptent dans le bilan.</p>
+    <div class="row" style="margin-top:14px"><div class="spacer"></div><button class="btn" data-act="close">Annuler</button><button class="btn ok" data-act="jsave">Enregistrer</button></div>`);
+}
+function journalPick(k, v) {
+  if (!JD) return;
+  JD[k] = JD[k] === +v ? null : +v;
+  document.querySelectorAll(`[data-act="jpick"][data-k="${k}"]`).forEach(b => b.classList.toggle('on', +b.dataset.v === JD[k]));
+}
+function journalSave() {
+  const num = id => { const v = parseFloat(String($(id).value || '').replace(',', '.')); return isNaN(v) ? null : v; };
+  const day = $('#jday').value || JD.day, kg = num('#jkg'), sleep = num('#jsleep');
+  if (kg != null && !(kg > 30 && kg < 250)) return toast('Poids : entre une valeur en kg, par ex. 55,4');
+  if (sleep != null && !(sleep >= 0 && sleep <= 16)) return toast('Sommeil : entre un nombre d\'heures, par ex. 7,5');
+  const e = {sleep, energy: JD.energy, sore: JD.sore, food: JD.food, pain: $('#jpain').value.trim(), note: $('#jnote').value.trim()};
+  S.journal = S.journal || {};
+  if (Object.values(e).every(v => v == null || v === '')) delete S.journal[day]; else S.journal[day] = e;
+  if (kg != null) { S.weights = S.weights || {}; S.weights[day] = Math.round(kg * 10) / 10; }
+  save(); closeModal(); render(); toast('Journal enregistré');
+}
+function journalSummary(j, day) {
+  const W = S.weights || {}, p = [];
+  if (W[day] != null) p.push(`${kgf(W[day])} kg`);
+  if (j.sleep != null) p.push(`sommeil ${kgf(j.sleep)} h`);
+  if (j.energy != null) p.push(`énergie ${j.energy}/5`);
+  if (j.sore != null) p.push(`courbatures : ${JSORE[j.sore].toLowerCase()}`);
+  if (j.food != null) p.push(`repas : ${JFOOD[j.food].toLowerCase()}`);
+  if (j.pain) p.push(`douleur : ${j.pain}`);
+  return p.join(' · ');
+}
+function journalHome() {
+  const day = isoDay(new Date()), j = (S.journal || {})[day];
+  return `<div class="card"><div class="row"><div style="flex:1;min-width:180px"><div class="exname">📝 Journal du jour</div>
+    <div class="muted small">${j ? esc(journalSummary(j, day)) + (j.note ? ' · « ' + esc(j.note.slice(0, 80)) + (j.note.length > 80 ? '…' : '') + ' »' : '')
+      : '30 secondes : poids, sommeil, énergie, repas, ressenti. Ton bilan de la semaine s\'en sert.'}</div></div>
+    <button class="btn ${j ? '' : 'primary'}" data-act="jopen" data-day="${day}">${j ? 'Modifier' : 'Remplir'}</button></div></div>`;
+}
+function journalList() {
+  const J = S.journal || {}, W = S.weights || {}, today = startOfDay(new Date());
+  const rows = Array.from({length: 14}, (_, i) => { const x = new Date(today); x.setDate(x.getDate() - i); return isoDay(x); })
+    .filter(d => J[d] || W[d] != null).map(d => {
+      const j = J[d] || {};
+      return `<tr><td><b>${esc(fmtDate(new Date(d + 'T12:00'), {weekday: 'short', day: 'numeric'}))}</b></td>
+        <td class="small">${esc(journalSummary(j, d))}${j.note ? `<br><span class="muted">« ${esc(j.note)} »</span>` : ''}</td>
+        <td class="r"><button class="btn ghost" data-act="jopen" data-day="${d}">Modifier</button></td></tr>`;
+    }).join('');
+  return `<div class="card"><div class="row"><button class="btn primary" data-act="jopen">📝 Remplir aujourd'hui</button><button class="btn" data-act="actadd">🏃 Activité déjà faite</button></div>
+    ${rows ? `<table class="ptable" style="margin-top:10px"><tbody>${rows}</tbody></table>` : '<p class="small muted" style="margin:10px 0 0">Rien encore : remplis ton premier jour.</p>'}</div>`;
+}
+
+// signes repérés dans la note et la douleur (mots simples, montrés tels quels dans le bilan)
+const PAIN_MAP = [
+  [/[ée]paule/i, 'épaule', ['Développé militaire (haltère)', 'Élévation latérale (haltère)', 'Développé couché (haltère)', 'Développé incliné (haltère)', 'Pompes lestées', 'Pull-over (haltère)']],
+  [/genou/i, 'genou', ['Squat bulgare (haltère)', 'Goblet squat (kettlebell)', 'Fente arrière (haltère)']],
+  [/dos|lombaire|reins/i, 'dos', ['Soulevé de terre roumain (haltère)', 'Rowing penché avec haltères', 'Soulevé de terre roumain une jambe (haltère)']],
+  [/coude|poignet|avant-bras/i, 'coude ou poignet', ['Curl biceps (haltère)', 'Curl marteau (haltère)', 'Extension triceps (haltère)', 'Traction pronation']],
+  [/hanche|aine/i, 'hanche', ['Fente arrière (haltère)', 'Squat bulgare (haltère)', 'Hip thrust (haltère)']],
+  [/cheville|mollet|achille/i, 'cheville ou mollet', ['Mollets une jambe', 'Fente arrière (haltère)']],
+];
+const NOTE_SIGNS = {
+  fatigue: /fatigu|crev[ée]|[ée]puis|naze|à plat|vid[ée]/i,
+  sommeil: /mal dormi|insomni|pas dormi|peu dormi|r[ée]veill/i,
+  repas: /pas faim|saut[ée]|oubli[ée].{0,15}repas|pas mang|trop mang|ballonn/i,
+  stress: /stress|angoiss|anxi/i,
+  facile: /facile|trop l[ée]ger|tranquille/i,
+  dur: /trop dur|rat[ée]|[ée]chec|pas r[ée]ussi|pas pu finir/i,
+};
+let REVIEW = null; // réglages proposés par le dernier bilan affiché
+function weekReview() {
+  const today = startOfDay(new Date()), dayN = k => { const x = new Date(today); x.setDate(x.getDate() - k); return isoDay(x); };
+  const days = Array.from({length: 7}, (_, i) => dayN(6 - i)), prev = Array.from({length: 7}, (_, i) => dayN(13 - i));
+  const J = S.journal || {}, Wt = S.weights || {}, P = progState(), adj = P.adj || {};
+  const avg = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null;
+  const js = days.filter(d => J[d]).map(d => ({day: d, ...J[d]}));
+  const sleeps = js.map(j => j.sleep).filter(v => v != null), energies = js.map(j => j.energy).filter(v => v != null);
+  const wNow = days.map(d => Wt[d]).filter(v => v != null), wPrev = prev.map(d => Wt[d]).filter(v => v != null);
+  const dW = wNow.length && wPrev.length ? avg(wNow) - avg(wPrev) : null;
+  const inWin = h => { const d = isoDay(new Date(h.date)); return d >= days[0] && d <= days[6]; };
+  const hist = S.history.filter(inWin), keyOf = new Map(Object.entries(P.done).map(([k, id]) => [id, k]));
+  const progS = hist.filter(h => keyOf.has(h.id)), cardio = hist.filter(h => h.kind === 'cardio');
+  const planned = progDates().filter(d => { const x = isoDay(d); return x >= days[0] && x <= days[6] && x <= isoDay(today); }).length;
+  const dayLbl = d => fmtDate(new Date(d + 'T12:00'), {weekday: 'short'});
+  const quote = (t, d) => `« ${t.length > 70 ? t.slice(0, 69) + '…' : t} » (${dayLbl(d)})`;
+  const items = [], newAdj = {}, reviewed = [];
+
+  // 1. Charges : toutes les reps faites → +2 kg ; 2 séries ou plus ratées de 2 reps → −2 kg
+  const up = [], down = [], bw = [];
+  for (const h of progS.slice().reverse()) {
+    if ((P.reviewed || {})[h.id]) continue;
+    const [w, d] = keyOf.get(h.id).split('-').map(Number), plan = progSession(w, d);
+    for (const pe of plan.exercises) {
+      const de = h.ex.find(x => x.name === pe.name); if (!de || pe.type !== 'reps') continue;
+      const ps = pe.sets, ds = de.sets, hit = ds.length >= ps.length && ps.every((p, i) => ds[i] && ds[i].r >= p.r);
+      const miss = ps.filter((p, i) => !ds[i] || ds[i].r <= p.r - 2).length >= 2;
+      if (!ps[0].w) { if (hit) bw.push(pe.name); continue; }
+      const doneW = Math.max(...ds.map(x => +x.w || 0)), base = (adj[pe.name] || 0) + doneW - ps[0].w;
+      if (hit) { newAdj[pe.name] = base + 2; up.push(pe.name); }
+      else if (miss) { newAdj[pe.name] = base - 2; down.push(pe.name); }
+    }
+    reviewed.push(h.id);
+  }
+  const short = n => n.replace(/ \((haltère|kettlebell)\)/, '');
+  // l'élément « Charges » est ajouté à la fin : il dépend de la fatigue (fatigué → on ne monte pas)
+  const chargesItem = tired => {
+    if (tired) for (const n of up) delete newAdj[n];
+    const upTxt = [...new Set(up)].map(short).join(', '), dnTxt = [...new Set(down)].map(short).join(', ');
+    const d = [up.length ? (tired ? `Toutes les reps faites sur ${esc(upTxt)}, mais tu es fatigué : on garde ces charges cette semaine.` : `Toutes les reps faites : <b>+2 kg</b> sur ${esc(upTxt)}.`) : '',
+      down.length ? `Plusieurs séries ratées : <b>−2 kg</b> sur ${esc(dnTxt)}.` : ''].filter(Boolean).join(' ');
+    return Object.keys(newAdj).length ? {ic: '📈', t: 'Charges de tes prochaines séances', d, act: 'radj', btn: 'Appliquer aux prochaines séances'}
+      : up.length ? {ic: '📈', t: 'Charges de tes prochaines séances', d} : null;
+  };
+  if (bw.length) items.push({ic: '🤸', t: 'Exercices au poids du corps réussis', d: `${esc([...new Set(bw)].map(short).join(', '))} : ajoute 1 à 2 reps ou descends en 3 s la prochaine fois.`});
+
+  // 2. Poids et calories (objectif +0,25 kg par semaine)
+  const foodLow = js.filter(j => j.food === 2).length, kcalRecent = S.kcalAt && (today - new Date(S.kcalAt + 'T00:00')) / 864e5 < 7;
+  const started = (today - new Date(P.start + 'T00:00')) / 864e5;
+  if (wNow.length < 3) items.push({ic: '⚖️', t: `Pèse-toi au moins 3 matins (${wNow.length} cette semaine)`, d: 'Sans moyenne de la semaine, l\'appli ne peut pas régler tes calories.'});
+  else if (dW == null) items.push({ic: '⚖️', t: `Moyenne de la semaine : ${kgf(avg(wNow))} kg`, d: 'La semaine prochaine, l\'appli la comparera à celle-ci.'});
+  else if (started < 14) items.push({ic: '⚖️', t: `${dW >= 0 ? '+' : ''}${kgf(dW, 2)} kg en une semaine`, d: 'Les 2 premières semaines, le poids bouge surtout à cause de l\'eau et de la créatine : on ne touche pas aux calories.'});
+  else if (dW < .15) {
+    if (foodLow >= 3) items.push({ic: '🍽', t: `Prise trop lente (${dW >= 0 ? '+' : ''}${kgf(dW, 2)} kg), mais repas incomplets`, d: `Tu as noté « pas assez » ${foodLow} jours. Mange d'abord tout le plan avant d'ajouter des calories.`});
+    else items.push({ic: '🍽', t: `Prise trop lente : ${dW >= 0 ? '+' : ''}${kgf(dW, 2)} kg (objectif +0,25)`, d: 'Ajoute environ 150 kcal par jour : un grand verre de lait, ou 1 c. à soupe d\'huile dans un plat.', act: kcalRecent ? null : 'rkcal', v: 150, btn: '+150 kcal par jour'});
+  } else if (dW > .45) items.push({ic: '🍽', t: `Prise trop rapide : +${kgf(dW, 2)} kg (objectif +0,25)`, d: 'Enlève environ 150 kcal par jour, par exemple la moitié du beurre de cacahuète.', act: kcalRecent ? null : 'rkcal', v: -150, btn: '−150 kcal par jour'});
+  else items.push({ic: '✅', t: `Poids : +${kgf(dW, 2)} kg, dans l'objectif`, d: 'Garde tes repas tels quels.'});
+
+  // 3. Récupération
+  const sleepAvg = avg(sleeps), enAvg = avg(energies), soreHigh = js.filter(j => j.sore === 2).length;
+  if (sleeps.length >= 3 && sleepAvg < 7) items.push({ic: '😴', t: `Sommeil moyen : ${kgf(sleepAvg)} h`, d: 'Vise 8 h : couche-toi 30 min plus tôt et coupe les écrans avant. C\'est la nuit que le muscle se reconstruit.'});
+  const tired = (energies.length >= 3 && enAvg <= 2.5) || soreHigh >= 3 || down.length >= 2;
+  const nx = progNext(), lightW = nx ? nx[0] : null, isLight = lightW != null && (P.light || {})[lightW];
+  if (tired) items.push({ic: '🔋', t: 'Fatigue élevée cette semaine', d: `${energies.length ? `Énergie moyenne ${kgf(enAvg)}/5. ` : ''}${soreHigh ? `Fortes courbatures ${soreHigh} jour(s). ` : ''}Une semaine allégée (une série de moins, −10 %) te fera repartir plus fort.`,
+    act: isLight ? null : 'rlight', btn: `Alléger la semaine ${lightW + 1}`});
+  const ch = chargesItem(tired); if (ch) items.unshift(ch);
+
+  // 4. Douleurs (champ douleur + note)
+  const upcoming = nx ? PROG_DAYS.flatMap((_, d) => progSession(nx[0], d).exercises.map(e => e.name)) : [];
+  for (const [re, part, exs] of PAIN_MAP) {
+    const hit = js.find(j => re.test(j.pain || '') || (/mal|douleur|bless/i.test(j.note || '') && re.test(j.note || '')));
+    if (!hit) continue;
+    const concerned = exs.filter(x => upcoming.includes(x));
+    items.push({ic: '🩹', t: `Douleur : ${part}`, d: `${esc(quote(hit.pain || hit.note, hit.day))}. ${concerned.length ? `À surveiller : ${esc(concerned.map(short).join(', '))}. ` : ''}Si ça fait plus que 3/10 pendant l'exercice, baisse de 20 % ou prends la version maison de la fiche. Si ça dure plus de 2 semaines, gonfle ou te réveille la nuit : médecin ou kiné.`});
+  }
+  // 5. Ce que tu as écrit
+  const sign = k => js.find(j => NOTE_SIGNS[k].test(j.note || ''));
+  const say = {fatigue: 'Tu notes de la fatigue : sommeil et repas complets d\'abord, avant de forcer.',
+    sommeil: 'Tu notes un sommeil difficile : même heure de coucher, pas de café après 14 h.',
+    repas: 'Tu notes des repas manqués : prépare les boîtes du dimanche et du mercredi, et garde un shake lait + flocons d\'avoine en secours.',
+    stress: 'Tu notes du stress : marche 10 min après le déjeuner, et garde la séance même plus courte, c\'est la régularité qui compte.',
+    facile: 'Tu trouves ça facile : si toutes tes reps passent, le bilan monte la charge (voir « Charges »).',
+    dur: 'Tu trouves ça dur : garde la charge et vise une technique propre ; le bilan baisse de 2 kg si plusieurs séries sont ratées.'};
+  for (const k of Object.keys(NOTE_SIGNS)) { const j = sign(k); if (j) items.push({ic: '✍️', t: esc(quote(j.note, j.day)), d: say[k]}); }
+
+  // 6. Régularité
+  const cardMin = Math.round(cardio.reduce((a, h) => a + (h.dur || 0), 0) / 60);
+  if (cardio.length < 2) items.push({ic: '🏃', t: `Cardio : ${cardio.length} fois cette semaine (${cardMin} min)`, d: 'Le plan prévoit 2 fois 25 min (marche rapide en côte, vélo ou course). Ajoute-les avec « 🏃 Activité déjà faite ».'});
+  if (js.length < 4) items.push({ic: '📝', t: `Journal rempli ${js.length} jour(s) sur 7`, d: 'Au moins 4 jours sur 7 pour un bilan fiable.'});
+
+  REVIEW = {adj: newAdj, reviewed};
+  return {items, tiles: [
+    ['Séances', `${progS.length} / ${Math.max(planned, progS.length)}`], ['Cardio', `${cardMin} min`],
+    ['Poids', dW == null ? (wNow.length ? kgf(avg(wNow)) + ' kg' : '—') : `${dW >= 0 ? '+' : ''}${kgf(dW, 2)} kg`],
+    ['Sommeil', sleeps.length ? kgf(sleepAvg) + ' h' : '—'], ['Énergie', energies.length ? kgf(enAvg) + '/5' : '—'], ['Journal', `${js.length} / 7 j`]]};
+}
+function reviewItem(it) {
+  return `<div class="rvi"><span class="ic" aria-hidden="true">${it.ic}</span><div><b>${it.t}</b><span class="small">${it.d}</span>
+    ${it.act ? `<div><button class="btn primary" data-act="${it.act}" data-v="${it.v ?? ''}">${esc(it.btn)}</button></div>` : ''}</div></div>`;
+}
+function reviewHtml(compact) {
+  const R = weekReview(), items = compact ? R.items.filter(i => i.act).concat(R.items.filter(i => !i.act)).slice(0, 2) : R.items;
+  return `${compact ? '' : `<div class="stats rvt">${R.tiles.map(([k, v]) => `<div class="stat"><span class="small">${k}</span><b>${v}</b></div>`).join('')}</div>`}
+    <div class="rv">${items.map(reviewItem).join('') || '<p class="small muted">Rien à régler pour l\'instant.</p>'}</div>
+    ${!compact && S.kcalAdj ? `<p class="small muted">Calories du plan réglées par le bilan : ${S.kcalAdj > 0 ? '+' : ''}${S.kcalAdj} kcal par jour.</p>` : ''}`;
+}
+function reviewHome() {
+  return `<h2>Bilan de la semaine</h2>${reviewHtml(true)}<button class="btn ghost" data-go="plan" style="margin-top:6px">Voir tout le bilan et le journal →</button>`;
+}
+function reviewApply(act, v) {
+  const P = progState();
+  if (act === 'radj' && REVIEW) {
+    P.adj = {...(P.adj || {}), ...REVIEW.adj}; P.reviewed = P.reviewed || {};
+    for (const id of REVIEW.reviewed) P.reviewed[id] = true;
+    toast('Charges mises à jour pour les prochaines séances');
+  }
+  if (act === 'rkcal') { S.kcalAdj = (S.kcalAdj || 0) + +v; S.kcalAt = isoDay(new Date()); toast(`Calories : ${(2550 + S.kcalAdj).toLocaleString('fr-FR')} kcal par jour`); }
+  if (act === 'rlight') { const nx = progNext(); if (nx) { P.light = {...(P.light || {}), [nx[0]]: true}; toast(`Semaine ${nx[0] + 1} allégée`); } }
+  save(); render();
+}
+
+// « À penser pendant la série » : les 3 consignes clés de la fiche (sinon celles du coach) et l'erreur n° 1
+function thinkList(name) {
+  const f = FICHES[name], pc = PHASE_CUES[name] || {};
+  let cues = f && f.cues ? f.cues.slice(0, 3) : [pc.con && 'Effort : ' + pc.con, pc.ecc && 'Retour : ' + pc.ecc, pc.haut || pc.bas].filter(Boolean);
+  if (!cues.length && Array.isArray(pc.t)) cues = pc.t.slice(0, 3);
+  if (!cues.length) return '';
+  const avoid = f && f.err && f.err[0];
+  return `<div class="think"><b>🧠 À penser pendant la série</b><ol>${cues.map(c => `<li>${esc(c)}</li>`).join('')}</ol>${avoid ? `<div class="avoid">⚠ À éviter : ${esc(avoid)}</div>` : ''}</div>`;
+}
+// les 2 positions côte à côte, avec le geste entre les deux
+function coSteps(key, fr) {
+  if (fr.length < 2) return '';
+  const [vc, ve] = VERBS[key] || ['Monte', 'Redescends'], ecc = ECC_FIRST.has(key);
+  const fig = p => `<svg viewBox="0 0 100 100" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">${figure(p)}</svg>`;
+  return `<h3>Les 2 positions</h3><div class="costeps">
+    <figure>${fig(fr[0])}<figcaption>1. Départ</figcaption></figure>
+    <div class="coarrow"><span>${esc(ecc ? ve : vc)} →</span><span>← ${esc(ecc ? vc : ve)}</span></div>
+    <figure>${fig(fr[1])}<figcaption>2. ${ecc ? 'En bas' : 'Fin de l\'effort'}</figcaption></figure></div>`;
 }
 
 /* ---------- Savoir : fiches d'exercices et principes, tirés des livres de Downloads\muscu ----------
@@ -2526,7 +2836,7 @@ function vPlan() {
 
   return `<p class="kicker">Ton plan · objectif +1 kg par mois</p><h1>Mon plan</h1>
   <div class="stats">
-    <div class="stat"><span class="small">Calories / jour</span><b>2 550</b></div>
+    <div class="stat"><span class="small">Calories / jour</span><b>${(2550 + (S.kcalAdj || 0)).toLocaleString('fr-FR')}</b>${S.kcalAdj ? `<span class="small">dont ${S.kcalAdj > 0 ? '+' : ''}${S.kcalAdj} (bilan)</span>` : ''}</div>
     <div class="stat"><span class="small">Protéines</span><b>120–150 g</b></div>
     <div class="stat"><span class="small">Glucides · lipides</span><b>330 · 70 g</b></div>
     <div class="stat"><span class="small">Poids visé</span><b>+0,25 kg</b><span class="small">par semaine</span></div>
@@ -2539,6 +2849,8 @@ function vPlan() {
     <li><span class="n">⏸ Écran</span><span class="muted">toutes les heures assis : 2 min debout ou 10 squats</span></li>
   </ul></div>
 
+  <h2 id="bilan">Bilan des 7 derniers jours</h2>${reviewHtml(false)}
+  <h2>Journal de bord</h2>${journalList()}
   <h2>Mon poids</h2>
   <div class="card">
     <div class="wrow"><input class="field" id="wkg" inputmode="decimal" placeholder="55,0" aria-label="Poids du jour en kg">
@@ -2559,7 +2871,7 @@ function vPlan() {
     <li><span class="n" style="flex:0 0 58px">07:30</span><span>Lever, toilettes, <b>pesée</b>.</span></li>
     ${MEALS.map(m => `<li><span class="n" style="flex:0 0 58px">${m.t}</span><span><b>${esc(m.name)}</b></span></li>`).join('')}
     <li><span class="n" style="flex:0 0 58px">13:00</span><span>Marche 10–15 min après le déjeuner.</span></li>
-    <li><span class="n" style="flex:0 0 58px">17:30</span><span><b>Séance</b> (lun, mar, jeu, ven) ou cardio (mer, sam). L'heure n'a pas d'importance, garde juste toujours la même.</span></li>
+    <li><span class="n" style="flex:0 0 58px">17:30</span><span><b>Séance</b> (${progWeekDays(true)}) ou cardio 2 des autres jours. L'heure n'a pas d'importance, garde juste toujours la même.</span></li>
     <li><span class="n" style="flex:0 0 58px">23:00</span><span>Coucher. Café seulement avant 14 h.</span></li>
   </ul></div>
 
@@ -2580,7 +2892,7 @@ function vPlan() {
   <div class="card"><ul class="exlist">
     <li><span class="n">Échauffement</span><span class="muted">5 min de cardio léger + gainage latéral, bird-dog, curl-up (protège le dos)</span></li>
     <li><span class="n">Cardio mer. et sam.</span><span class="muted">25 min de marche rapide en côte ou de vélo. 40 min dès février, 4 × 4 min de fractionné 1 fois/sem. dès avril</span></li>
-    <li><span class="n">Pas de barre ?</span><span class="muted">L'onglet Programme remplace les tractions tout seul (pull-over le lundi, rowing un bras le jeudi) tant que la case « J'ai une barre de traction » est décochée. Achat conseillé : barre de traction de porte (~25 €), puis un banc</span></li>
+    <li><span class="n">Pas de barre ?</span><span class="muted">L'onglet Programme remplace les tractions tout seul (pull-over en Haut du corps A, rowing un bras en Haut du corps B) tant que la case « J'ai une barre de traction » est décochée. Achat conseillé : barre de traction de porte (~25 €), puis un banc</span></li>
     <li><span class="n">Haltères trop légers</span><span class="muted">À la maison : plus de répétitions, descente en 3–4 s, pause de 1 s en bas</span></li>
   </ul></div>
 
@@ -2803,6 +3115,12 @@ document.addEventListener('click', ev => {
     case 'rest-add': if (rest) { rest.end += +d.v * 1000; rest.rung = false; $('#restbar').classList.remove('ring'); tick(); } return;
     case 'rest-skip': restNotifClose(); return stopRest();
     case 'notifon': return notifOn();
+    case 'actadd': return actForm();
+    case 'actsave': return actSave();
+    case 'jopen': return journalForm(d.day);
+    case 'jpick': return journalPick(d.k, d.v);
+    case 'jsave': return journalSave();
+    case 'radj': case 'rkcal': case 'rlight': return reviewApply(d.act, d.v);
     case 'pip': return pipToggle();
     case 'stper': ST.per = d.v; ST.off = 0; return render();
     case 'stmet': ST.metric = d.v; return render();
@@ -2860,6 +3178,8 @@ document.addEventListener('input', ev => {
 });
 document.addEventListener('change', ev => {
   if (ev.target.id === 'pstartdate' && ev.target.value) { const P = progState(); P.start = ev.target.value; P.anchored = true; save(); return render(); }
+  if (ev.target.id === 'pnextdate' && ev.target.value) { const nx = progNext(); if (nx) { progState().next = {key: nx.join('-'), date: ev.target.value}; save(); toast('Séance déplacée, la suite suit'); return render(); } }
+  if (ev.target.id === 'jday' && ev.target.value) return journalForm(ev.target.value);
   if (ev.target.id === 'pbar') { progState().bar = ev.target.checked; save(); return render(); }
   if (ev.target.id === 'coautochk' && CO) { CO.auto = ev.target.checked; coSavePrefs(); return; }
   if (ev.target.id === 'importfile') {
