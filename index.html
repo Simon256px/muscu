@@ -366,6 +366,21 @@ button.picwrap .cap{color:var(--coal)}
 .rvi b{display:block;margin-bottom:2px}
 .rvi .btn{margin-top:8px}
 .rvt{grid-template-columns:repeat(auto-fit,minmax(96px,1fr))}
+.htabs{margin:0 0 12px}
+.daynav{display:flex;align-items:center;gap:8px;margin:0 0 12px}
+.daynav .btn{min-width:48px;min-height:48px;font-size:22px}
+.dayt{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
+.dayt b{font-size:17px}
+.dayt .field{width:auto}
+.jgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:10px}
+.jgrid .stat b{font-size:18px;overflow-wrap:anywhere}
+.jnote{margin:10px 0 0;padding:10px 12px;background:var(--paper);border-left:4px solid var(--violet);border-radius:12px;font-size:15px;line-height:1.45;white-space:pre-wrap}
+.daylist{display:flex;flex-direction:column;gap:2px;padding:8px}
+.dayrow{display:flex;justify-content:space-between;gap:10px;min-height:44px;align-items:center;background:none;border:0;border-radius:10px;padding:6px 10px;font:inherit;font-size:14.5px;color:var(--coal);cursor:pointer;text-align:left}
+.dayrow:hover{background:var(--paper)}
+.dayrow.on{background:var(--coal);color:#fff}
+.dayrow.on .muted{color:#ddd}
+.linkbtn{background:none;border:0;padding:0;min-height:44px;font:inherit;font-weight:700;color:var(--coal);text-decoration:underline;cursor:pointer}
 /* Savoir : fiches et principes */
 #modal .box{max-height:calc(100dvh - 32px);overflow-y:auto}
 .fiche-d{margin:10px 0 4px;border-top:1px solid var(--line)}
@@ -842,7 +857,7 @@ function vHome() {
       <div class="todaycard dark"><div class="row"><div class="clock" data-clock>${fmtClock(elapsed())}</div>
         <div class="muted">${a.pausedAt ? 'En pause · ' : ''}${done} / ${all.length} séries faites</div></div>
         <div class="progress"><i style="width:${all.length ? done / all.length * 100 : 0}%"></i></div>
-        <button class="btn cta" data-go="session">▶ Reprendre ma séance</button></div>`;
+        <button class="btn cta" data-go="session">▶ Reprendre ma séance</button></div>` + journalHome();
   }
   const pn = progNext();
   let h = '';
@@ -1272,7 +1287,7 @@ function exCard(e, ei, a) {
   ${e.sets.map((x, si) => `<tr class="${x.done ? 'done' : ''}">
     <td class="setno" data-prev="${last && last.sets[si] ? esc(fmtSet(last.sets[si])) : ''}">${si + 1}</td>
     <td class="prev">${last && last.sets[si] ? esc(fmtSet(last.sets[si])) : '—'}</td>
-    <td><input class="num" type="number" min="0" step="0.5" data-e="${ei}" data-s="${si}" data-k="w" value="${x.w}"></td>
+    <td><input class="num" type="number" min="0" step="1" data-e="${ei}" data-s="${si}" data-k="w" value="${x.w}"></td>
     <td><input class="num" type="number" min="0" step="${t ? 5 : 1}" data-e="${ei}" data-s="${si}" data-k="${t ? 's' : 'r'}" value="${t ? x.s : x.r}">
       ${t ? `<button class="btn ghost" data-act="timer" data-e="${ei}" data-s="${si}" title="Lancer le compte à rebours">▶</button>` : ''}</td>
     <td style="text-align:right"><button class="check" data-act="toggle" data-e="${ei}" data-s="${si}" title="Valider la série">✓</button></td>
@@ -1483,7 +1498,7 @@ function routineEditor(r, ri) {
         <button class="btn ghost" data-act="xup" data-r="${ri}" data-e="${ei}" title="Monter">↑</button><button class="btn ghost danger" data-act="xdel" data-r="${ri}" data-e="${ei}" title="Retirer l'exercice">✕</button>
       </div>
       <div class="chips">${e.sets.map((x, si) => `<span class="chip"><b>${si + 1}</b>
-        <input type="number" min="0" step="0.5" data-r="${ri}" data-e="${ei}" data-xs="${si}" data-k="w" value="${x.w}"> kg ×
+        <input type="number" min="0" step="1" data-r="${ri}" data-e="${ei}" data-xs="${si}" data-k="w" value="${x.w}"> kg ×
         <input type="number" min="0" step="${t ? 5 : 1}" data-r="${ri}" data-e="${ei}" data-xs="${si}" data-k="${t ? 's' : 'r'}" value="${t ? x.s : x.r}"> ${t ? 's' : 'reps'}</span>`).join('')}
         <button class="btn ghost" data-act="xsadd" data-r="${ri}" data-e="${ei}" title="Ajouter une série">+ série</button>
         ${e.sets.length > 1 ? `<button class="btn ghost" data-act="xsdel" data-r="${ri}" data-e="${ei}" title="Retirer la dernière série">− série</button>` : ''}</div>
@@ -1961,6 +1976,12 @@ function coFrame(ts) {
   if (CO !== cur) return; // le coach est passé à l'exercice suivant : sa propre boucle a pris le relais
   const pb = document.getElementById('coplay');
   if (pb) { const t = {confirm: '✓ Valider', rest: '▶ Série suivante', end: '✓ Fini'}[CO.mode] || (CO.done ? '↺ Encore' : CO.playing ? '⏸ Pause' : '▶ Lancer'); if (pb.textContent !== t) pb.textContent = t; }
+  const cd = document.getElementById('codone');
+  if (cd && !CO.mode) {
+    const part = !CO.done && (CO.hold ? CO.t >= 1 : CO.rep > 0);
+    const t = part ? `✓ Valider : ${CO.hold ? Math.round(CO.t) + ' s faites' : CO.rep + (CO.rep > 1 ? ' reps faites' : ' rep faite')}` : '✓ Valider la ' + CO.setLabel.toLowerCase();
+    if (cd.textContent !== t) cd.textContent = t;
+  }
   coRaf = requestAnimationFrame(coFrame);
 }
 // décompte de préparation : la voix annonce la série, puis 3, 2, 1
@@ -1997,7 +2018,7 @@ function coDone() {
   const A = S.active; if (!CO || !A || CO.ei == null) return;
   if (CO.auto) return coValidate();
   const e = A.ex[CO.ei], x = e && e.sets[CO.si]; if (!x) return;
-  closeModal(); coStop(); x.done = true; save(); render(); startRest(e.rest, 'Repos');
+  coPartial(x); closeModal(); coStop(); x.done = true; save(); render(); startRest(e.rest, 'Repos');
 }
 
 // Fin de série. En séance avec « enchaîner » : validation au bout de 4 s (annulable), repos dans le coach, puis série suivante.
@@ -2007,10 +2028,16 @@ function coFinish() {
   if (CO.auto && CO.ei != null && CO.si >= 0) { CO.mode = 'confirm'; CO.until = Date.now() + 4000; coSound('end', 'Série terminée'); coPanel(); }
   else coSound('end', 'Terminé');
 }
+// série arrêtée avant la cible (pause puis « Valider ») : on garde les reps ou les secondes vraiment faites
+function coPartial(x) {
+  if (!CO || CO.done) return;
+  if (CO.hold) { if (CO.t >= 1) x.s = Math.round(CO.t); }
+  else if (CO.rep > 0) x.r = CO.rep;
+}
 function coValidate() {
   const A = S.active, e = A && A.ex[CO.ei], x = e && e.sets[CO.si];
   if (!x || CO.mode === 'rest' || CO.mode === 'end') return;
-  CO.done = true; x.done = true; save(); render(); startRest(e.rest, 'Repos');
+  coPartial(x); CO.done = true; x.done = true; save(); render(); startRest(e.rest, 'Repos');
   // suite : la prochaine série de cet exercice, sinon le prochain exercice pas fini (sans revenir à l'échauffement)
   let ni = CO.ei, nsi = e.sets.findIndex(y => !y.done);
   if (nsi < 0) {
@@ -2146,14 +2173,15 @@ function journalHome() {
   return `<div class="card"><div class="row"><div style="flex:1;min-width:180px"><div class="exname">📝 Journal du jour</div>
     <div class="muted small">${j ? esc(journalSummary(j, day)) + (j.note ? ' · « ' + esc(j.note.slice(0, 80)) + (j.note.length > 80 ? '…' : '') + ' »' : '')
       : '30 secondes : poids, sommeil, énergie, repas, ressenti. Ton bilan de la semaine s\'en sert.'}</div></div>
-    <button class="btn ${j ? '' : 'primary'}" data-act="jopen" data-day="${day}">${j ? 'Modifier' : 'Remplir'}</button></div></div>`;
+    <div class="row" style="gap:6px"><button class="btn ${j ? '' : 'primary'}" data-act="jopen" data-day="${day}">${j ? 'Modifier' : 'Remplir'}</button>
+    <button class="btn" data-act="dayopen" data-day="${day}">📅 Mes journées</button></div></div></div>`;
 }
 function journalList() {
   const J = S.journal || {}, W = S.weights || {}, today = startOfDay(new Date());
   const rows = Array.from({length: 14}, (_, i) => { const x = new Date(today); x.setDate(x.getDate() - i); return isoDay(x); })
     .filter(d => J[d] || W[d] != null).map(d => {
       const j = J[d] || {};
-      return `<tr><td><b>${esc(fmtDate(new Date(d + 'T12:00'), {weekday: 'short', day: 'numeric'}))}</b></td>
+      return `<tr><td><button type="button" class="linkbtn" data-act="dayopen" data-day="${d}">${esc(fmtDate(new Date(d + 'T12:00'), {weekday: 'short', day: 'numeric'}))}</button></td>
         <td class="small">${esc(journalSummary(j, d))}${j.note ? `<br><span class="muted">« ${esc(j.note)} »</span>` : ''}</td>
         <td class="r"><button class="btn ghost" data-act="jopen" data-day="${d}">Modifier</button></td></tr>`;
     }).join('');
@@ -2772,8 +2800,8 @@ const MEALS = [
     how: 'Porridge : flocons + lait au micro-ondes 2 min, banane et beurre de cacahuète dessus.'},
   {t: '12:30', name: 'Déjeuner', k: 740, p: 47, items: ['120 g de riz (poids cru)', '150 g de blanc de poulet (cru)', '200 g de légumes', '1 c. à soupe d\'huile d\'olive (10 g)'],
     how: 'L\'huile se met crue sur l\'assiette : c\'est une façon simple d\'ajouter des calories.'},
-  {t: '16:30', name: 'Collation (1 h avant la séance)', k: 360, p: 27, items: ['200 g de skyr nature', '1 fruit', '25 g d\'amandes'],
-    how: 'Jour sans séance : même collation, à la même heure.'},
+  {t: '16:30', name: 'Collation (1 h avant la séance)', k: 360, p: 27, items: ['1 dose de whey (30 g) dans de l\'eau, ou 200 g de skyr nature', '1 fruit', '25 g d\'amandes'],
+    how: 'La whey dans l\'eau apporte autant que le skyr (≈ 120 kcal, 24 g de protéines). Jour sans séance : même collation, à la même heure.'},
   {t: '20:00', name: 'Dîner', k: 730, p: 45, items: ['120 g de pâtes (poids cru)', '125 g de bœuf haché 5 % (cru) — saumon 2 soirs/semaine', '200 g de légumes', '1 c. à soupe d\'huile d\'olive (10 g)'],
     how: 'Les soirs de saumon, ne mets pas d\'huile : il est déjà gras.'},
   {t: '22:30', name: 'Avant de dormir', k: 115, p: 8, items: ['250 ml de lait (ou 150 g de fromage blanc)'],
@@ -2801,7 +2829,7 @@ const SWAPS = [
 const SHOP = [
   ['Flocons d\'avoine', '600 g'], ['Lait demi-écrémé', '4 L'], ['Bananes', '7'], ['Beurre de cacahuète 100 %', '150 g (1 pot / 2 sem.)'],
   ['Riz', '850 g'], ['Pâtes', '850 g'], ['Blanc de poulet', '1,05 kg'], ['Bœuf haché 5 %', '650 g'], ['Saumon', '280 g (2 pavés)'],
-  ['Légumes frais ou surgelés', '2,8 kg'], ['Skyr nature', '1,4 kg'], ['Fruits', '7'], ['Amandes', '175 g'], ['Huile d\'olive', '≈ 150 ml'],
+  ['Légumes frais ou surgelés', '2,8 kg'], ['Whey (Impact Whey)', '1 pot de 900 g ≈ 1 mois'], ['Skyr nature', '200 g par jour sans whey'], ['Fruits', '7'], ['Amandes', '175 g'], ['Huile d\'olive', '≈ 150 ml'],
   ['Créatine monohydrate', '1 pot de 300 g ≈ 2–3 mois'],
 ];
 function weightSave() {
@@ -2902,7 +2930,7 @@ function vPlan() {
 
   <details class="card"><summary>💊 Compléments et santé</summary><ul class="small" style="margin:10px 0 0;padding-left:18px">
     <li><b>Créatine monohydrate</b> 3 à 5 g/jour : le complément le mieux prouvé. +1 à 2 kg d'eau dans le muscle au début, c'est normal.</li>
-    <li><b>Whey</b> : pratique si tu manques de temps, pas obligatoire.</li>
+    <li><b>Whey</b> : tu en prends. 1 dose de 30 g par jour dans la collation, à la place du skyr. Pas besoin de plus : tes repas apportent déjà le reste des protéines.</li>
     <li><b>Vitamine D</b> de novembre à mars : demande un dosage à ton médecin.</li>
     <li><b>Inutile ou dangereux</b> : boosters de testostérone, brûleurs de graisse, gainers sucrés. <b>Stéroïdes et SARMs : non.</b></li>
     <li><b>Médecin, une fois</b> : avec un IMC sous 17,5, vérifie que rien ne t'empêche de grossir (thyroïde, digestion). Puis une prise de sang chaque année.</li>
@@ -3045,11 +3073,55 @@ document.addEventListener('focusout', ev => { if (ev.target.classList?.contains(
 /* ---------- Historique ---------- */
 let openHist = new Set();
 let histAll = false;
+// Historique « Par jour » : tout ce qui s'est passé un jour donné (journal complet, poids, séances, activités)
+let HV = {mode: 'day', day: null};
+const dayShift = (day, n) => { const x = new Date(day + 'T12:00'); x.setDate(x.getDate() + n); return isoDay(x); };
+function histTabs() {
+  return `<div class="jseg htabs" role="group" aria-label="Affichage">${[['day', '📅 Par jour'], ['list', '🏋️ Toutes les séances']].map(([k, l]) =>
+    `<button type="button" class="${HV.mode === k ? 'on' : ''}" data-act="hmode" data-v="${k}">${l}</button>`).join('')}</div>`;
+}
+function dayPage(day) {
+  const today = isoDay(new Date()), J = (S.journal || {})[day], W = S.weights || {};
+  const sess = allSessions().filter(x => isoDay(new Date(x.date)) === day).sort((a, b) => new Date(a.date) - new Date(b.date));
+  let h = `<div class="daynav"><button class="btn" data-act="dayopen" data-day="${dayShift(day, -1)}" aria-label="Jour précédent">‹</button>
+    <div class="dayt"><b>${esc(fmtDate(new Date(day + 'T12:00'), {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'}))}</b>
+      <input type="date" class="field" id="dayjump" value="${day}" max="${today}" aria-label="Aller au jour"></div>
+    <button class="btn" data-act="dayopen" data-day="${dayShift(day, 1)}" ${day >= today ? 'disabled' : ''} aria-label="Jour suivant">›</button></div>`;
+  // journal complet
+  const f = [];
+  if (W[day] != null) f.push(['Poids', `${kgf(W[day])} kg`]);
+  if (J) {
+    if (J.sleep != null) f.push(['Sommeil', `${kgf(J.sleep)} h`]);
+    if (J.energy != null) f.push(['Énergie', `${J.energy}/5`]);
+    if (J.sore != null) f.push(['Courbatures', JSORE[J.sore]]);
+    if (J.food != null) f.push(['Repas', JFOOD[J.food]]);
+    if (J.pain) f.push(['Douleur', J.pain]);
+  }
+  h += `<div class="card"><div class="row"><div class="exname" style="flex:1">📝 Journal</div>
+    <button class="btn ${J ? '' : 'primary'}" data-act="jopen" data-day="${day}">${J ? 'Modifier' : 'Remplir'}</button></div>
+    ${f.length ? `<div class="jgrid">${f.map(([k, v]) => `<div class="stat"><span class="small">${k}</span><b>${esc(v)}</b></div>`).join('')}</div>` : ''}
+    ${J && J.note ? `<blockquote class="jnote">${esc(J.note)}</blockquote>` : ''}
+    ${!f.length && !(J && J.note) ? '<p class="small muted" style="margin:8px 0 0">Rien noté ce jour-là.</p>' : ''}</div>`;
+  // séances et activités du jour, détaillées
+  h += `<h2>Séances et activités</h2>` + (sess.length ? sess.map(x => `<div class="card"><div class="exname">${esc(x.title)} ${x.src === 'hevy' ? '<span class="tag">Hevy</span>' : ''}</div>
+      <div class="muted small">${esc(new Date(x.date).toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'}))} · ${fmtDur(x.dur)}${volume(x) ? ' · ' + Math.round(volume(x)).toLocaleString('fr-FR') + ' kg soulevés' : ''}</div>
+      ${x.note ? `<p class="small" style="margin:6px 0 0">${esc(x.note)}</p>` : ''}
+      <div class="hdet">${x.ex.map(e => `<div><b>${esc(e.name)}</b> <span class="muted">— ${e.sets.map(y => esc(fmtSet(y))).join(' · ')}</span></div>`).join('')}</div></div>`).join('')
+    : `<div class="card"><p class="small muted" style="margin:0">Aucune séance ce jour-là.</p><div class="row" style="margin-top:8px"><button class="btn" data-act="actadd">🏃 Ajouter une activité</button></div></div>`);
+  // les 14 derniers jours, pour naviguer
+  const rows = Array.from({length: 14}, (_, i) => dayShift(today, -i)).map(d => {
+    const n = allSessions().filter(x => isoDay(new Date(x.date)) === d), jj = (S.journal || {})[d];
+    const icons = [n.some(x => x.kind !== 'cardio') ? '🏋️' : '', n.some(x => x.kind === 'cardio') ? '🏃' : '', jj ? '📝' : '', W[d] != null ? `⚖️ ${kgf(W[d])}` : ''].filter(Boolean).join(' ');
+    return `<button type="button" class="dayrow ${d === day ? 'on' : ''}" data-act="dayopen" data-day="${d}"><span>${esc(fmtDate(new Date(d + 'T12:00'), {weekday: 'short', day: 'numeric', month: 'short'}))}</span><span class="muted">${icons || '—'}</span></button>`;
+  }).join('');
+  return h + `<h2>Les 14 derniers jours</h2><div class="card daylist">${rows}</div>`;
+}
 function vHistory() {
+  if (HV.mode === 'day') return `<h1>Historique</h1>${histTabs()}${dayPage(HV.day || isoDay(new Date()))}`;
   const ss = allSessions(), now = new Date(), mon = mondayOf(now);
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const week = ss.filter(s => new Date(s.date) >= mon), month = ss.filter(s => new Date(s.date) >= monthStart);
-  let h = `<h1>Historique</h1><div class="stats">
+  let h = `<h1>Historique</h1>${histTabs()}<div class="stats">
     <div class="stat"><span class="muted small">Cette semaine</span><b>${week.length}</b></div>
     <div class="stat"><span class="muted small">Ce mois-ci</span><b>${month.length}</b></div>
     <div class="stat"><span class="muted small">Temps ce mois</span><b>${fmtDur(month.reduce((a, s) => a + s.dur, 0))}</b></div>
@@ -3154,6 +3226,8 @@ document.addEventListener('click', ev => {
     case 'ghpush': return ghPush('Sauvegarde manuelle');
     case 'ghpull': return ghAskPull();
     case 'ghforget': return confirmBox('Oublier la clé GitHub sur cet appareil ? Tes données restent ici et sur GitHub.', () => { try { localStorage.removeItem(GH_KEY); } catch (e) {} ghMsg = ''; $('#sync').hidden = true; render(); }, 'Oublier');
+    case 'hmode': HV.mode = d.v; return render();
+    case 'dayopen': HV.mode = 'day'; HV.day = d.day; return go('history');
     case 'hist': if (ev.target.closest('[data-act="hdel"]')) return; openHist.has(d.id) ? openHist.delete(d.id) : openHist.add(d.id); return render();
     case 'hdel': ev.stopPropagation(); return confirmBox('Supprimer cette séance de l\'historique ?', () => { S.history = S.history.filter(s => s.id !== d.id); save(); render(); }, 'Supprimer');
     case 'histall': histAll = true; return render();
@@ -3180,6 +3254,7 @@ document.addEventListener('change', ev => {
   if (ev.target.id === 'pstartdate' && ev.target.value) { const P = progState(); P.start = ev.target.value; P.anchored = true; save(); return render(); }
   if (ev.target.id === 'pnextdate' && ev.target.value) { const nx = progNext(); if (nx) { progState().next = {key: nx.join('-'), date: ev.target.value}; save(); toast('Séance déplacée, la suite suit'); return render(); } }
   if (ev.target.id === 'jday' && ev.target.value) return journalForm(ev.target.value);
+  if (ev.target.id === 'dayjump' && ev.target.value) { HV.mode = 'day'; HV.day = ev.target.value; return render(); }
   if (ev.target.id === 'pbar') { progState().bar = ev.target.checked; save(); return render(); }
   if (ev.target.id === 'coautochk' && CO) { CO.auto = ev.target.checked; coSavePrefs(); return; }
   if (ev.target.id === 'importfile') {
