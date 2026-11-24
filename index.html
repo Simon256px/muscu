@@ -440,6 +440,77 @@ ul.lib li{margin:4px 0}
   #restbar .t{font-size:20px;min-width:48px}
   #restbar .btn{padding:8px 8px;font-size:13px}
 }
+/* Bibliothèque d'exercices (organisation d'exercises-dataset, style de l'appli) */
+.lx{padding:14px}
+.lx-search{position:relative}
+.lx-search .field{width:100%;min-height:48px;padding-left:42px;padding-right:46px;border-radius:999px;font-size:16px}
+.lx-search .ic{position:absolute;left:15px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--muted);pointer-events:none}
+.lx-qx{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:40px;height:40px;border:0;border-radius:50%;background:none;font-size:16px;color:var(--muted);cursor:pointer}
+.lx-qx:hover{background:#00000012;color:var(--coal)}
+.lx-sec{margin-top:12px}
+.lx-sl{margin:0 0 6px 2px;font-size:11.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.lx-chips{display:flex;flex-wrap:wrap;gap:6px}
+.lx-chip{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:6px 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--white);color:var(--coal);font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.lx-chip:hover{border-color:var(--coal)}
+.lx-chip.on{background:var(--coal);border-color:var(--coal);color:#fff}
+.lx-chip .n{font-size:12px;font-weight:700;color:var(--muted)}
+.lx-chip.on .n{color:#d0d0d0}
+.lx-chip:disabled{opacity:.4;cursor:default;border-color:var(--line)}
+.lx-bar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:2px 2px 10px}
+.lx-count{margin-right:auto;font-size:14px;font-weight:700}
+.lx-badge{display:inline-flex;align-items:center;gap:2px;min-height:36px;padding:2px 4px 2px 12px;border:0;border-radius:999px;background:var(--coal);color:#fff;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.lx-badge b{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;font-size:13px}
+.lx-clear{min-height:36px;padding:0 6px;border:0;background:none;font:inherit;font-size:13px;font-weight:600;color:var(--muted);text-decoration:underline;cursor:pointer}
+.lx-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:16px}
+.lx-card{display:flex;flex-direction:column;padding:0;text-align:left;background:var(--paper);border:1.5px solid transparent;border-radius:20px;overflow:hidden;box-shadow:var(--shadow);font:inherit;color:var(--coal);cursor:pointer;transition:transform .15s,border-color .15s}
+.lx-card:hover{transform:translateY(-2px);border-color:var(--coal)}
+.lx-card:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
+.lx-media{display:block;padding:10px 8px 4px;background:var(--white)}
+.lx-media svg{display:block;width:100%;height:auto}
+.lx-media path.lx-p,.lx-media path.lx-s{stroke:#fff;stroke-width:3}
+.lx-media .lx-p{fill:var(--ochre)} .lx-media .lx-s{fill:var(--yolk)}
+.lx-body{display:flex;flex-direction:column;gap:6px;padding:10px 12px 12px}
+.lx-name{font-size:14.5px;font-weight:700;line-height:1.25}
+.lx-tags{display:flex;flex-wrap:wrap;gap:4px}
+.lx-tag{padding:2px 8px;border-radius:6px;background:var(--cloud);font-size:11.5px;font-weight:700}
+.lx-tag.m{background:#ffe2cc;color:#8a2e00}
+.lx-empty{grid-column:1/-1;padding:36px 16px;text-align:center;color:var(--muted)}
+.lx-empty .big{margin:0;font-size:34px}
+.lx-head{display:flex;align-items:flex-start;gap:10px}
+.lx-head h2{flex:1;margin:0;font-size:22px;line-height:1.15}
+.lx-x{flex-shrink:0;width:44px;height:44px;border-radius:50%;border:1.5px solid var(--line);background:var(--white);color:var(--coal);font-size:15px;cursor:pointer}
+.lx-x:hover{border-color:var(--coal)}
+.lx-grab{width:44px;height:5px;margin:-8px auto 12px;border-radius:3px;background:var(--line)}
+.lx-hero{margin-top:10px}
+.lx-hero svg.bm{max-width:300px}
+.lx-meta{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.lx-mc{display:flex;flex-direction:column;gap:1px;padding:7px 12px;background:var(--white);border:1.5px solid var(--line);border-radius:14px}
+.lx-mc span{font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.lx-mc b{font-size:14px}
+.lx-mus{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.lx-mg{padding:10px 12px;background:var(--white);border:1.5px solid var(--line);border-radius:14px}
+.lx-mt{display:inline-block;margin:2px 4px 2px 0;padding:3px 10px;border-radius:999px;font-size:12.5px;font-weight:700}
+.lx-mt.p{background:var(--ochre);color:var(--coal)} .lx-mt.s{background:var(--yolk);color:var(--coal)}
+.lx-post{margin:10px 0;padding:10px 12px;background:var(--white);border-left:4px solid var(--ochre);border-radius:12px;font-size:14.5px;line-height:1.45}
+.lx-h{margin:16px 0 4px;font-size:16px}
+ol.lx-steps{display:flex;flex-direction:column;gap:8px;margin:8px 0 0;padding:0;list-style:none;counter-reset:lx}
+ol.lx-steps li{display:flex;gap:10px;font-size:14.5px;line-height:1.45;counter-increment:lx}
+ol.lx-steps li::before{content:counter(lx);flex-shrink:0;display:flex;align-items:center;justify-content:center;width:24px;height:24px;margin-top:1px;border-radius:50%;background:var(--coal);color:#fff;font-size:12px;font-weight:800}
+.lx-act{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.lx-act .btn.primary{flex:1}
+@media (max-width:700px){
+  .lx-chips{flex-wrap:nowrap;overflow-x:auto;margin:0 -14px;padding:0 14px 2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .lx-chips::-webkit-scrollbar{display:none}
+}
+@media (max-width:480px){ .lx-grid{grid-template-columns:1fr 1fr;gap:10px} .lx-name{font-size:13.5px} .lx-mus{grid-template-columns:1fr} }
+@media (min-width:641px){ .lx-grab{display:none} }
+/* sur téléphone, les fenêtres montent du bas de l'écran */
+@media (max-width:640px){
+  #modal{align-items:flex-end;padding:0}
+  #modal .box,#modal .box.wide{width:100%;max-height:94dvh;border-radius:28px 28px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));animation:sheetup .22s ease-out}
+}
+@keyframes sheetup{from{transform:translateY(48px);opacity:.5}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){ #modal .box{animation:none} }
 </style>
 </head>
 <body>
@@ -2841,10 +2912,130 @@ document.addEventListener('toggle', ev => {
 function chipList(list, cls) {
   return list.map(([k, p]) => `<span class="chip ${cls}" title="${esc(BOOKS[k] ? BOOKS[k].t : '')}">${esc(bk(k))}${p && cls === 'ok' ? ' · ' + esc(p) : ''}</span>`).join('');
 }
+// Bibliothèque d'exercices : recherche, filtres en pastilles, grille de cartes, fiche qui monte du bas.
+// Organisation inspirée du navigateur d'exercises-dataset (Hasan Emir Yıldırım, licence MIT), redessinée au style de
+// l'appli ; aucune image ni GIF Gym visual. Les silhouettes viennent de MuscleMap (voir BODYMAP).
+const LX = {q: '', m: new Set(), e: new Set(), d: new Set()};
+const LX_SECS = [['m', 'Muscle'], ['e', 'Matériel'], ['d', 'Séance']];
+const LX_GROUPS = {Pectoraux: ['pecs'], Dos: ['lats', 'upperback', 'lowback', 'traps'], Épaules: ['delt_a', 'delt_l', 'delt_p'],
+  Bras: ['biceps', 'triceps', 'forearms'], Jambes: ['quads', 'adductors', 'hamstrings', 'calves'], Fessiers: ['glutes', 'glute_med'], Abdos: ['abs', 'obliques']};
+const LX_EQUIP = ['Haltères', 'Kettlebell', 'Poids du corps'];
+const lxEquip = n => /kettlebell/i.test(n) ? 'Kettlebell' : /haltère|Dumbbell/i.test(n) ? 'Haltères' : 'Poids du corps';
+const lxShort = n => n.replace(/ \(haltère\)| avec haltères| \(kettlebell\)/, '');
+const lxVals = (o, k) => k === 'm' ? o.g : k === 'e' ? [o.e] : o.days;
+let lxCache = null, lxBaseH = '';
+function lxAll() {
+  if (lxCache) return lxCache;
+  const m = new Map(), add = (n, day, ref, main) => {
+    let o = m.get(n);
+    if (!o) {
+      const {p, s} = musclesFor(n);
+      o = {name: n, p, s, ref, main, days: [], e: lxEquip(n), g: Object.keys(LX_GROUPS).filter(g => LX_GROUPS[g].some(k => p.includes(k)))};
+      m.set(n, o);
+    }
+    if (!o.days.includes(day)) o.days.push(day);
+  };
+  for (const D of PROG_DAYS) {
+    const dn = D.name.replace('du corps ', '');
+    for (const x of D.ex) { add(x[0], dn, x, x[4]); if (x[5]) add(x[5][0], 'Remplaçants', [x[5][0], x[5][1], x[5][2], 0], x[4]); }
+  }
+  add('Floor press (haltère)', 'Remplaçants', null, false);
+  lxCache = [...m.values()];
+  for (const o of lxCache) o.txt = norm([o.name, ...o.p.concat(o.s).map(k => MUSCLE_NAMES[k]), o.e, ...o.g, ...o.days].join(' '));
+  return lxCache;
+}
+function lxMatch(o, skip) {
+  const words = norm(LX.q).split(/\s+/).filter(Boolean);
+  if (!words.every(w => o.txt.includes(w))) return false;
+  return LX_SECS.every(([k]) => k === skip || !LX[k].size || lxVals(o, k).some(v => LX[k].has(v)));
+}
+const lxCount = (k, v) => lxAll().filter(o => lxMatch(o, k) && lxVals(o, k).includes(v)).length;
+function lxLevels(o) {
+  const lv = new Map();
+  for (const k of o.s) for (const [sd, sl] of MAP_SLUGS[k] || []) lv.set(sd + sl, 's');
+  for (const k of o.p) for (const [sd, sl] of MAP_SLUGS[k] || []) lv.set(sd + sl, 'p');
+  return lv;
+}
+// silhouette neutre dessinée une fois, réutilisée par chaque carte (<use>) ; la carte n'ajoute que ses muscles colorés
+function lxBase() {
+  return lxBaseH || (lxBaseH = ['f', 'b'].map(side => Object.entries(BODYMAP[side]).map(([slug, ps]) => slug === 'rhomboids' ? ''
+    : ps.map(d => MAP_SKIN.has(slug) ? `<path fill="#e1e1e1" d="${d}"/>` : `<path fill="#c9c9c9" stroke="#fff" stroke-width="3" d="${d}"/>`).join('')).join('')).join(''));
+}
+function lxMini(lv) {
+  let h = '';
+  for (const side of ['f', 'b']) for (const [slug, ps] of Object.entries(BODYMAP[side])) {
+    const l = lv.get(side + slug); if (l && !MAP_SKIN.has(slug)) h += ps.map(d => `<path class="lx-${l}" d="${d}"/>`).join('');
+  }
+  return `<svg viewBox="0 95 1445 1345" aria-hidden="true" focusable="false"><use href="#lxbase"/>${h}</svg>`;
+}
+function lxCard(o) {
+  return `<button type="button" class="lx-card" data-act="lxopen" data-ex="${esc(o.name)}"><span class="lx-media">${lxMini(lxLevels(o))}</span>
+    <span class="lx-body"><span class="lx-name">${esc(lxShort(o.name))}</span>
+    <span class="lx-tags">${o.g.slice(0, 2).map(g => `<span class="lx-tag m">${esc(g)}</span>`).join('')}<span class="lx-tag">${esc(o.e)}</span></span></span></button>`;
+}
+function lxChips() {
+  const all = lxAll();
+  return LX_SECS.map(([k, label]) => {
+    let vals = [...new Set(all.flatMap(o => lxVals(o, k)))];
+    vals = k === 'm' ? Object.keys(LX_GROUPS).filter(v => vals.includes(v)) : k === 'e' ? LX_EQUIP.filter(v => vals.includes(v))
+      : PROG_DAYS.map(D => D.name.replace('du corps ', '')).concat('Remplaçants').filter(v => vals.includes(v));
+    return `<div class="lx-sec"><p class="lx-sl">${label}</p><div class="lx-chips" role="group" aria-label="${label}">${vals.map(v => {
+      const on = LX[k].has(v), n = lxCount(k, v);
+      return `<button type="button" class="lx-chip ${on ? 'on' : ''}" data-act="lxchip" data-k="${k}" data-v="${esc(v)}" aria-pressed="${on}" ${!n && !on ? 'disabled' : ''}>${esc(v)} <span class="n">${n}</span></button>`;
+    }).join('')}</div></div>`;
+  }).join('');
+}
+function lxResults() {
+  const list = lxAll().filter(o => lxMatch(o)), q = LX.q.trim();
+  const badges = LX_SECS.flatMap(([k]) => [...LX[k]].map(v =>
+    `<button type="button" class="lx-badge" data-act="lxrm" data-k="${k}" data-v="${esc(v)}" aria-label="Retirer le filtre ${esc(v)}">${esc(v)} <b aria-hidden="true">✕</b></button>`));
+  if (q) badges.unshift(`<button type="button" class="lx-badge" data-act="lxqclear" aria-label="Effacer la recherche">« ${esc(q)} » <b aria-hidden="true">✕</b></button>`);
+  const bar = `<div class="lx-bar"><span class="lx-count">${list.length} exercice${list.length > 1 ? 's' : ''}</span>${badges.join('')}${badges.length > 1 ? '<button type="button" class="lx-clear" data-act="lxclear">Tout effacer</button>' : ''}</div>`;
+  return bar + `<div class="lx-grid">${list.length ? list.map(lxCard).join('')
+    : '<div class="lx-empty"><p class="big">🤷</p><p>Aucun exercice ne correspond.</p><button type="button" class="btn" data-act="lxclear">Tout effacer</button></div>'}</div>`;
+}
+function lxView() {
+  return `<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><g id="lxbase">${lxBase()}</g></defs></svg>
+  <div class="card lx"><div class="lx-search"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input type="text" inputmode="search" enterkeyhint="search" id="lxq" class="field" placeholder="Chercher : dos, haltères, curl…" value="${esc(LX.q)}" autocomplete="off" aria-label="Chercher un exercice">
+    <button type="button" class="lx-qx" data-act="lxqclear" aria-label="Effacer la recherche" ${LX.q ? '' : 'hidden'}>✕</button></div>
+    <div id="lxf">${lxChips()}</div></div>
+  <div id="lxres" aria-live="polite">${lxResults()}</div>`;
+}
+// après un filtre : on met à jour les pastilles sur place (la rangée qui défile garde sa position) et on refait la grille
+function lxRefresh() {
+  const res = $('#lxres'); if (!res) return;
+  res.innerHTML = lxResults();
+  const qx = document.querySelector('.lx-qx'); if (qx) qx.hidden = !LX.q;
+  document.querySelectorAll('#lxf .lx-chip').forEach(c => {
+    const k = c.dataset.k, v = c.dataset.v, on = LX[k].has(v), n = lxCount(k, v);
+    c.classList.toggle('on', on); c.setAttribute('aria-pressed', on); c.disabled = !n && !on; c.querySelector('.n').textContent = n;
+  });
+}
+const lxSec = x => x % 60 ? `${Math.floor(x / 60)} min ${x % 60}` : `${x / 60} min`;
+function lxOpen(name) {
+  const o = lxAll().find(x => x.name === name); if (!o) return;
+  const lv = lxLevels(o), r = o.ref, sec = r ? r[3] : 0, names = ks => ks.map(k => MUSCLE_NAMES[k]).join(', ');
+  const target = r ? (sec ? sec + ' s' : r[2] ? r[2] + ' reps' : '') : '';
+  const rest = lxSec(restFor(name, o.main, sec, false)) + (o.main && !sec && !ISOLATION.has(name) ? ' (3 min en force)' : '');
+  const meta = [['Matériel', o.e], [o.days.length > 1 ? 'Séances' : 'Séance', o.days.join(', ')], ['Objectif', target], ['Repos', rest]].filter(x => x[1]);
+  const post = postureFor(name), st = STEPS[name];
+  modal(`<div class="lx-sheet"><div class="lx-grab" aria-hidden="true"></div>
+    <div class="lx-head"><h2>${esc(name)}</h2><button type="button" class="lx-x" data-act="close" aria-label="Fermer">✕</button></div>
+    <div class="mumap lx-hero">${bodySvg((sd, sl) => lv.get(sd + sl) || '', 'Muscles : ' + names(o.p))}</div>
+    <div class="lx-meta">${meta.map(([k, v]) => `<div class="lx-mc"><span>${k}</span><b>${esc(v)}</b></div>`).join('')}</div>
+    <div class="lx-mus"><div class="lx-mg"><p class="lx-sl">Principaux</p>${o.p.map(k => `<span class="lx-mt p">${esc(MUSCLE_NAMES[k])}</span>`).join('')}</div>
+      ${o.s.length ? `<div class="lx-mg"><p class="lx-sl">Secondaires</p>${o.s.map(k => `<span class="lx-mt s">${esc(MUSCLE_NAMES[k])}</span>`).join('')}</div>` : ''}</div>
+    ${post ? `<div class="lx-post"><b>Posture de départ.</b> ${esc(post)}</div>` : ''}
+    ${thinkList(name)}
+    ${st ? `<h3 class="lx-h">👣 Étapes pas à pas</h3><ol class="lx-steps">${st.map(x => `<li><span>${esc(x)}</span></li>`).join('')}</ol>
+      <p class="small muted" style="margin:6px 0 0">D'après ExerciseDB (base exercises-dataset, licence MIT), relu et adapté.</p>` : ''}
+    ${ficheDetails(name)}
+    <div class="lx-act"><button type="button" class="btn primary" data-act="coach" data-ex="${esc(name)}">▶ Ouvrir le coach</button><button type="button" class="btn" data-act="close">Fermer</button></div></div>`);
+  $('#modalbox').classList.add('sheet');
+}
+
 function vSavoir() {
-  const days = PROG_DAYS.map(d => `<li><span class="n">${esc(d.name)}</span><span class="fl">${d.ex.map(([n]) => FICHES[n]
-    ? `<button class="btn ghost fbtn" data-act="coach" data-ex="${esc(n)}">${esc(n.replace(/ \(haltère\)| avec haltères| \(kettlebell\)/, ''))}</button>` : '').join('')}</span></li>`).join('');
-  const extra = ['Floor press (haltère)', 'Rowing un bras (haltère)'].map(n => `<button class="btn ghost fbtn" data-act="coach" data-ex="${esc(n)}">${esc(n.replace(' (haltère)', ''))}</button>`).join('');
   const princ = PRINCIPES.map(p => { const [dots, lt] = LVL[p.lvl];
     return `<details class="card princ"><summary><span>${esc(p.t)}</span><span class="lvl" title="${esc(lt)}">${dots}</span></summary>
       <p><b>Pour toi.</b> ${esc(p.d)}</p><p><b>Pourquoi.</b> ${esc(p.m)}</p>
@@ -2861,9 +3052,9 @@ function vSavoir() {
     <ul class="legend">${Object.values(LVL).reverse().map(([d, t]) => `<li><span class="lvl">${d}</span><span>${esc(t)}</span></li>`).join('')}</ul>
     <p class="small muted" style="margin-bottom:0">Pages : celles du fichier PDF ; « éd. papier » quand le livre numérique donne la page imprimée. Les citations sont résumées, pas recopiées.</p></div>
 
-  <h2>Les fiches de tes exercices</h2>
-  <div class="card"><p class="small muted" style="margin-top:0">Elles s'ouvrent aussi pendant la séance, sous chaque exercice (« Comprendre l'exercice »).</p>
-    <ul class="exlist days">${days}<li><span class="n">Remplaçants</span><span class="fl">${extra}</span></li></ul></div>
+  <h2>Tes exercices</h2>
+  <p class="small muted" style="margin:-4px 0 10px">Touche un exercice pour voir ses muscles, sa posture, les étapes et sa fiche. Les fiches s'ouvrent aussi pendant la séance.</p>
+  ${lxView()}
 
   <h2>Les principes, et qui les soutient</h2>${princ}
 
@@ -3237,7 +3428,7 @@ function vHistory() {
 }
 
 /* ---------- Modale / toast ---------- */
-function modal(html) { $('#modalbox').classList.remove('wide'); $('#modalbox').innerHTML = html; $('#modal').hidden = false; }
+function modal(html) { $('#modalbox').classList.remove('wide', 'sheet'); $('#modalbox').innerHTML = html; $('#modal').hidden = false; }
 function closeModal() { $('#modal').hidden = true; }
 function confirmBox(msg, onYes, yesLabel = 'Oui') {
   modal(`<p style="margin-top:0">${msg}</p><div class="row"><div class="spacer"></div><button class="btn" data-act="close">Annuler</button><button class="btn primary" id="yes">${yesLabel}</button></div>`);
@@ -3258,6 +3449,13 @@ document.addEventListener('click', ev => {
     case 'save': return saveSession();
     case 'close': return closeModal();
     case 'coach': return coachOpen(d.ex, d.e);
+    case 'lxopen': return lxOpen(d.ex);
+    case 'lxchip': { const z = LX[d.k]; z.has(d.v) ? z.delete(d.v) : z.add(d.v); return lxRefresh(); }
+    case 'lxrm': LX[d.k].delete(d.v); return lxRefresh();
+    case 'lxclear': case 'lxqclear': {
+      LX.q = ''; if (d.act === 'lxclear') { LX.m.clear(); LX.e.clear(); LX.d.clear(); }
+      const q = $('#lxq'); if (q) { q.value = ''; if (d.act === 'lxqclear') q.focus(); }
+      return lxRefresh(); }
     case 'coplay': case 'corestart': case 'cotempo': case 'cosound': case 'coprep': return coAction(d.act, d.v);
     case 'codone': return coDone();
     case 'coautonow': return CO && coValidate();
@@ -3332,6 +3530,7 @@ document.addEventListener('click', ev => {
 });
 document.addEventListener('input', ev => {
   const t = ev.target, d = t.dataset, A = S.active;
+  if (t.id === 'lxq') { LX.q = t.value; return lxRefresh(); }
   if (t.id === 'rsearch') { search = t.value; $('#rlist').innerHTML = routinesList(); }
   else if (d.xs !== undefined) { S.routines[+d.r].exercises[+d.e].sets[+d.xs][d.k] = t.value === '' ? 0 : +t.value; save(); }
   else if (d.k && A) { A.ex[+d.e].sets[+d.s][d.k] = t.value === '' ? 0 : +t.value; save(); }
