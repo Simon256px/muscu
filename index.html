@@ -2474,6 +2474,8 @@ function vProgram() {
 
 /* ---------- Plan : alimentation, poids, règles (questionnaire du 16/11/2026) ---------- */
 // Profil : H 26 ans, 178 cm, 55 kg, assis la journée, gros appétit, mange de tout, aime cuisiner, objectif +1 kg/mois.
+// Se dit ectomorphe. Poignet fragile depuis longtemps (côté où l'avant-bras rejoint la main) : gêne aux pompes et aux curls
+// quand c'est lourd en grande amplitude (sensation de « décrochage ») ; rien sur les autres exercices (2026-11-27).
 const PLAN_START_KG = 55;
 /* ---------- Coach visuel : animation au tempo, repères, muscles, coach sonore ---------- */
 // FRAMES dont la 1re transition est la descente (excentrique) ; les autres commencent par l'effort
@@ -2744,20 +2746,22 @@ function coFrame(ts) {
     if (!CO.done && left <= 0) coFinish();
   } else {
     const P = CO.phases, cyc = P.reduce((s, p) => s + p.d, 0), prep = CO.prep ? .4 : 1.2;
-    let v = P[0].a, label = 'Mets-toi en place', cue = 'Position de départ', frac = 0;
+    let v = P[0].a, label = 'Mets-toi en place', cue = 'Position de départ', frac = 0, inRep = false;
     if (CO.t >= prep) {
       const tt = CO.t - prep, n = Math.floor(tt / cyc);
       let r = tt - n * cyc, i = 0; while (i < P.length - 1 && r >= P[i].d) { r -= P[i].d; i++; }
       const ph = P[i], u = ph.d ? Math.min(1, r / ph.d) : 1;
       v = ph.a + (ph.b - ph.a) * smooth(u); frac = u;
       const gi = n * P.length + i;
+      inRep = !!ph.rep;
       if (gi !== CO.idx) {
-        // phases passées depuis la dernière image : on compte les reps finies
-        for (let k = CO.idx + 1; k <= gi; k++) if (k > 0 && P[(k - 1) % P.length].rep) CO.rep++;
+        // phases passées depuis la dernière image : une rep compte dès que le mouvement revient
+        // (entrée dans la phase marquée rep), au moment où la voix annonce son numéro
+        for (let k = CO.idx + 1; k <= gi; k++) if (P[k % P.length].rep) CO.rep++;
         CO.idx = gi;
-        if (CO.target && CO.rep >= CO.target) coFinish();
-        else if (P[i].rep) coSound('rep', ''), CO.sound === 'voice' && coSay(String(CO.rep + 1));
+        if (P[i].rep) { coSound('rep', ''); if (CO.sound === 'voice') coSay(String(CO.rep)); }
         else coSound(ph.k, ph.w);
+        if (CO.target && CO.rep >= CO.target) coFinish();
       }
       label = `${ph.w || PH_LABEL[ph.k]} · ${ph.d} s`;
       cue = (PHASE_CUES[CO.name] || {})[ph.k] || (ph.k === 'ecc' ? 'Contrôle la descente' : ph.k === 'con' ? 'Effort franc, sans élan' : ph.k === 'bas' ? 'Garde la position' : 'Respire');
@@ -2765,7 +2769,9 @@ function coFrame(ts) {
     if (CO.done) { v = P[0].a; label = 'Série terminée ✓'; cue = 'Valide la série, puis repose-toi'; frac = 1; }
     coDraw(v);
     coSet('cophase', label);
-    coSet('corep', `${CO.target ? `Rep ${Math.min(CO.rep + (CO.t >= prep && !CO.done ? 1 : 0), CO.target)} / ${CO.target}` : `Rep ${CO.rep + 1}`}${CO.setLabel ? ' · ' + CO.setLabel : ''}`);
+    // numéro affiché : de 1 à la cible (jamais 0) ; pendant la pause qui suit une rep, on garde son numéro
+    const shownRep = Math.max(1, CO.done || inRep ? CO.rep : CO.rep + 1);
+    coSet('corep', `Rep ${CO.target ? `${Math.min(shownRep, CO.target)} / ${CO.target}` : shownRep}${CO.setLabel ? ' · ' + CO.setLabel : ''}`);
     coSet('cocue', cue);
     if (bar) bar.style.width = frac * 100 + '%';
   }
@@ -2994,7 +3000,8 @@ const PAIN_MAP = [
   [/[ée]paule/i, 'épaule', ['Développé militaire (haltère)', 'Élévation latérale (haltère)', 'Développé couché (haltère)', 'Développé incliné (haltère)', 'Pompes lestées', 'Pull-over (haltère)']],
   [/genou/i, 'genou', ['Squat bulgare (haltère)', 'Goblet squat (kettlebell)', 'Fente arrière (haltère)']],
   [/dos|lombaire|reins/i, 'dos', ['Soulevé de terre roumain (haltère)', 'Rowing penché avec haltères', 'Soulevé de terre roumain une jambe (haltère)']],
-  [/coude|poignet|avant-bras/i, 'coude ou poignet', ['Curl biceps (haltère)', 'Curl marteau (haltère)', 'Extension triceps (haltère)', 'Traction pronation']],
+  [/coude/i, 'coude', ['Curl biceps (haltère)', 'Curl marteau (haltère)', 'Extension triceps (haltère)', 'Traction pronation']],
+  [/poignet|avant-bras/i, 'poignet', ['Pompes lestées', 'Curl marteau (haltère)', 'Curl biceps (haltère)', 'Développé couché (haltère)', 'Développé incliné (haltère)', 'Marche du fermier (haltère)']],
   [/hanche|aine/i, 'hanche', ['Fente arrière (haltère)', 'Squat bulgare (haltère)', 'Hip thrust (haltère)']],
   [/cheville|mollet|achille/i, 'cheville ou mollet', ['Mollets une jambe', 'Fente arrière (haltère)']],
 ];
@@ -3311,11 +3318,11 @@ const FICHES = {
   'Développé couché (haltère)': {lvl: 3,
     why: 'Le grand exercice de poussée du haut du corps : pectoraux, triceps, avant des épaules. Pousser fort, c\'est aussi se relever du sol, repousser quelqu\'un ou amortir une chute.',
     meca: 'Avec des haltères, les mains descendent plus bas qu\'avec une barre : les pectoraux s\'étirent plus sous la charge. Chaque bras travaille seul, ce qui révèle et corrige un côté plus faible. Schoenfeld note qu\'avec des haltères, le pectoral est très chargé en bas du mouvement et presque plus en haut : c\'est le bas du trajet qui compte le plus.',
-    cues: ['5 points d\'appui : tête, haut du dos, fesses, pied gauche, pied droit', 'Omoplates serrées et basses, comme si tu les rangeais dans tes poches arrière', 'Coudes à environ 45° du buste, avant-bras verticaux sous les haltères', 'Descends jusqu\'à sentir la poitrine s\'étirer, puis pousse en rapprochant les haltères', 'Si la technique se dégrade, la série est finie, même avant le nombre de reps prévu'],
+    cues: ['5 points d\'appui : tête, haut du dos, fesses, pied gauche, pied droit', 'Omoplates serrées et basses, comme si tu les rangeais dans tes poches arrière', 'Coudes à environ 45° du buste, avant-bras verticaux sous les haltères', 'Descends jusqu\'à sentir la poitrine s\'étirer, puis pousse en rapprochant les haltères', 'Si la technique se dégrade, la série est finie, même avant le nombre de reps prévu', 'Poignets droits, pas cassés vers l\'arrière : l\'haltère au-dessus de l\'avant-bras'],
     err: ['Coudes écartés à 90° : l\'épaule encaisse au lieu du pectoral', 'Fesses qui décollent du banc', 'Rebond en bas de la descente'],
     home: 'Sans banc, fais un floor press au sol. L\'amplitude est plus courte (les coudes touchent le sol) : marque 1 s de pause coudes posés et ajoute des répétitions.',
     debat: 'Le dos très cambré des powerlifters (Delavier, p. 64) raccourcit le trajet pour soulever plus lourd. C\'est utile en compétition, pas pour ton but : garde seulement la petite cambrure naturelle. Faut-il ajouter des demi-reps tout en bas ? Helms (3e éd.) explique que sur les développés, le passage le plus dur est déjà en bas, là où le pectoral est étiré : ces demi-reps n\'apportent probablement rien. Garde l\'amplitude complète.',
-    src: [src('delavier', 'p. 76 et 64'), src('nsca', 'p. 951'), src('contreras', 'p. 44 (angle des coudes)'), src('fleck', 'p. 25 (arrêter la série)'), src('helms3', 'p. 191'), src('schoenfeld', 'p. 194')]},
+    src: [src('delavier', 'p. 76 et 64'), src('nsca', 'p. 951'), src('contreras', 'p. 44 (angle des coudes)'), src('fleck', 'p. 25 (arrêter la série)'), src('helms3', 'p. 191'), src('schoenfeld', 'p. 194'), src('nsca', 'p. 994 (poignet neutre)')]},
   'Floor press (haltère)': {lvl: 2,
     why: 'C\'est la version « sans banc » du développé couché, pour la maison. Même muscles, trajet plus court.',
     meca: 'Le sol arrête les coudes avant que l\'épaule ne parte loin en arrière, ce qui épargne l\'avant de l\'épaule. Delavier propose une idée proche (coudes le long du corps) pour continuer à pousser quand l\'épaule est sensible. Starrett le propose d\'ailleurs à ceux qui manquent d\'amplitude à l\'épaule pour bien descendre au banc.',
@@ -3375,7 +3382,7 @@ const FICHES = {
   'Curl biceps (haltère)': {lvl: 3,
     why: 'Les fléchisseurs du coude servent à porter et à tirer. Un biceps fort protège aussi son tendon, dont la rupture est un accident classique en soulevant lourd.',
     meca: 'Le biceps plie le coude, mais c\'est surtout le supinateur le plus puissant du corps : il tourne la paume vers le haut. Le faire tourner en montant le fait travailler dans toutes ses fonctions.',
-    cues: ['Coudes fixes le long du corps', 'Pars en prise marteau et tourne la paume vers le haut en montant', 'Redescends jusqu\'au bras presque tendu'],
+    cues: ['Poignet fragile : poignée serrée, poignet droit jusqu\'en bas ; plus léger plutôt que de le sentir tiré', 'Coudes fixes le long du corps', 'Pars en prise marteau et tourne la paume vers le haut en montant', 'Redescends jusqu\'au bras presque tendu'],
     err: ['Balancer le buste', 'S\'arrêter à mi-course', 'Plier les poignets'],
     home: 'Trop léger : descente en 3 s, ou alterne les bras pour garder la tension.',
     debat: 'Le curl incliné (bras derrière le corps) étire davantage le biceps. Helms (3e éd.) cite des essais mesurés à l\'IRM : le curl incliné a fait un peu plus grossir le biceps, le curl pupitre a fait plus grossir le brachial et le brachio-radial. La leçon : il ne suffit pas d\'étirer le muscle, il faut qu\'il soit chargé quand il est long. Schoenfeld ajoute que le chef long travaille surtout au début de la flexion et le chef court à la fin : une raison de plus de garder l\'amplitude complète.',
@@ -3383,11 +3390,11 @@ const FICHES = {
   'Curl marteau (haltère)': {lvl: 3,
     why: 'Il fait travailler le brachial et le brachio-radial. Résultat : un avant-bras épais, une meilleure poigne et un coude plus solide.',
     meca: 'En prise marteau, le biceps est moins avantagé : le brachio-radial fait une plus grande part du travail. Delavier le tient pour le meilleur exercice de ce muscle. Schoenfeld explique pourquoi : le biceps sert aussi à tourner la paume vers le haut ; pouce en haut, il est désavantagé et le brachio-radial fait plus de travail.',
-    cues: ['Pouces vers le haut tout le long', 'Coudes immobiles', 'Monte jusqu\'à l\'épaule, redescends complètement', 'Monte « les pouces vers les épaules », un bras après l\'autre', 'Freine la descente'],
-    err: ['Élan du buste', 'Coudes qui avancent'],
+    cues: ['Serre fort la poignée et garde le poignet droit : l\'haltère ne doit jamais tirer ta main vers le bas', 'Pouces vers le haut tout le long', 'Coudes immobiles', 'Monte jusqu\'à l\'épaule, redescends complètement', 'Monte « les pouces vers les épaules », un bras après l\'autre', 'Freine la descente'],
+    err: ['Élan du buste', 'Coudes qui avancent', 'Laisser l\'haltère pendre au bout du bras tendu, poignet relâché : c\'est là que le poignet est tiré'],
     home: 'Même chose ; ou un bras à la fois avec pause en haut.',
-    debat: '« Fibres directes d\'abord, superficielles ensuite » : Delavier explique que l\'effort recrute progressivement plus de fibres. Plus une série approche de l\'échec, plus le muscle entier travaille. C\'est la base du principe « Effort ».',
-    src: [src('delavier', 'p. 8 et 5'), src('nsca', 'p. 982-983'), src('schoenfeld', 'p. 196')]},
+    debat: '« Fibres directes d\'abord, superficielles ensuite » : Delavier explique que l\'effort recrute progressivement plus de fibres. Plus une série approche de l\'échec, plus le muscle entier travaille. C\'est la base du principe « Effort ». Poignet fragile : la gêne arrive quand c\'est lourd et le bras tendu, en bas. Là, l\'haltère pend et tire la main loin de l\'avant-bras. Prends plus léger et garde la poignée serrée jusqu\'en bas. Arrête la descente juste avant de sentir le poignet tiré, et ajoute plutôt des reps que du poids. Delavier recommande de renforcer les muscles qui relèvent le poignet (les extenseurs), souvent plus faibles que ceux qui le fléchissent, pour stabiliser l\'articulation. Ne t\'y mets qu\'avec une charge qui ne fait pas mal, et de préférence après avis d\'un kiné.',
+    src: [src('delavier', 'p. 8 et 5'), src('nsca', 'p. 982-983'), src('schoenfeld', 'p. 196'), src('delavier', 'p. 15 et 17 (poignet)')]},
   'Extension triceps (haltère)': {lvl: 2,
     why: 'Le triceps fait environ les deux tiers du volume du bras et termine toutes les poussées.',
     meca: 'Le chef long du triceps passe derrière l\'épaule. Bras levé au-dessus de la tête, il est étiré avant de se contracter, ce qui le fait mieux travailler.',
@@ -3471,7 +3478,7 @@ const FICHES = {
   'Développé incliné (haltère)': {lvl: 3,
     why: 'Il vise le haut des pectoraux (le faisceau sous la clavicule) et l\'avant des épaules.',
     meca: 'Au-delà d\'environ 60° d\'inclinaison, ce sont surtout les épaules qui travaillent. Le dentelé antérieur et le petit pectoral tiennent l\'omoplate contre le buste.',
-    cues: ['Banc entre 30 et 45°', 'Omoplates serrées, comme au développé couché', 'Rapproche les haltères en montant', 'Descends les haltères un peu vers l\'extérieur, près des aisselles, à hauteur du haut de la poitrine', 'Poignets rigides, juste au-dessus des coudes'],
+    cues: ['Banc entre 30 et 45°', 'Omoplates serrées, comme au développé couché', 'Rapproche les haltères en montant', 'Descends les haltères un peu vers l\'extérieur, près des aisselles, à hauteur du haut de la poitrine', 'Poignets rigides, juste au-dessus des coudes', 'Poignets droits, pas cassés vers l\'arrière : l\'haltère au-dessus de l\'avant-bras'],
     err: ['Banc trop redressé', 'Fesses qui glissent', 'Gonfler la poitrine ou cambrer pour aller chercher les haltères'],
     home: 'Sans banc incliné : coussins calés contre le canapé, ou pompes pieds surélevés, qui visent aussi le haut des pectoraux.',
     debat: 'Que le haut des pectoraux grossisse « à part » est appuyé par l\'anatomie (fibres orientées différemment) et par la pratique. Les mesures directes sont rares. Schoenfeld confirme l\'angle : le faisceau sous la clavicule fait le mieux face à la charge entre 30 et 45°, et une prise plus serrée (coudes près du corps) l\'active davantage.',
@@ -3479,11 +3486,11 @@ const FICHES = {
   'Pompes lestées': {lvl: 3,
     why: 'Pousser en gainant tout le corps. Contrairement au banc, les omoplates bougent librement : le dentelé antérieur travaille, ce qui est bon pour les épaules.',
     meca: 'Pectoraux, triceps et avant des épaules. Les dentelés plaquent les omoplates sur les côtes.',
-    cues: ['Mains un peu plus larges que les épaules, sous les coudes', 'Bras à 45° du corps', 'Fesses et abdos serrés : corps droit des talons à la tête', '« Visse » les mains dans le sol (sans les bouger) pour stabiliser les épaules', 'La poitrine touche le sol, coudes tendus en haut'],
-    err: ['Hanches qui s\'affaissent', 'Mains trop écartées', 'Amplitude coupée'],
-    home: 'Lest : un sac à dos rempli de livres ou de bouteilles.',
-    debat: 'Pompes ou développé ? Si l\'effort est le même (proche de l\'échec), les deux construisent du muscle (principe « Plage de reps »). Le lest sert juste à rester sous 30 reps. McGill a mesuré une charge importante sur le bas du dos pendant les pompes : certaines personnes avec un dos douloureux les supportent mal, d\'autres s\'en trouvent soulagées. Si une pompe réveille une douleur de dos, ce n\'est pas dans ta tête.',
-    src: [src('contreras', 'p. 44 (éd. papier)'), src('delavier', 'p. 75'), src('starrett', 'le couple de rotation'), src('mcgilllbd', 'p. 281-284')]},
+    cues: ['Poignet fragile : mains sur deux haltères posés au sol, poignées parallèles, poignet droit dans l\'axe de l\'avant-bras', 'Mains un peu plus larges que les épaules, sous les coudes', 'Bras à 45° du corps', 'Fesses et abdos serrés : corps droit des talons à la tête', '« Visse » les mains dans le sol (sans les bouger) pour stabiliser les épaules', 'La poitrine touche le sol, coudes tendus en haut', 'Coudes à l\'aplomb des poignets'],
+    err: ['Hanches qui s\'affaissent', 'Mains trop écartées', 'Amplitude coupée', 'Mains à plat au sol avec un poignet qui fait mal : le poignet est cassé vers l\'arrière sous tout le poids du haut du corps'],
+    home: 'Lest : un sac à dos rempli de livres ou de bouteilles. Poignet fragile : pompes sur deux haltères, chez toi comme à la salle (des haltères hexagonaux ne roulent pas). Plus de lest si ça devient facile, pas de retour aux mains à plat.',
+    debat: 'Pompes ou développé ? Si l\'effort est le même (proche de l\'échec), les deux construisent du muscle (principe « Plage de reps »). Le lest sert juste à rester sous 30 reps. McGill a mesuré une charge importante sur le bas du dos pendant les pompes : certaines personnes avec un dos douloureux les supportent mal, d\'autres s\'en trouvent soulagées. Si une pompe réveille une douleur de dos, ce n\'est pas dans ta tête. Le poignet : mains à plat, il est plié vers l\'arrière presque à fond et porte une grosse part de ton poids. Starrett attribue les douleurs de poignet à une main cassée vers l\'arrière (il parle des charges tenues au-dessus de la tête), et pour les pompes il demande les coudes à l\'aplomb des poignets. Sur des haltères, le poignet reste droit : même exercice, sans la position qui fait mal. Une sensation de « décrochage » n\'est pas une courbature : Neumann rappelle que le poignet côté petit doigt est tenu par un ensemble de ligaments (le TFCC), et que s\'il se relâche, l\'articulation devient instable et douloureuse. Fais-le examiner par un médecin du sport ou un kiné.',
+    src: [src('contreras', 'p. 44 (éd. papier)'), src('delavier', 'p. 75'), src('starrett', 'le couple de rotation'), src('mcgilllbd', 'p. 281-284'), src('starrett', 'ch. 16 (poignets)'), src('neumann', 'p. 211 (TFCC)')]},
   'Oiseau / Y-raise (haltère)': {lvl: 2,
     why: 'Il travaille l\'arrière des épaules, les trapèzes moyens et bas et les rhomboïdes : la posture, et des épaules saines quand on passe la journée assis.',
     meca: 'Buste penché, dos plat, bras levés jusqu\'à l\'horizontale. En resserrant les omoplates à la fin, on recrute les trapèzes, le rhomboïde, le petit rond et l\'infra-épineux.',
@@ -3578,6 +3585,12 @@ const PRINCIPES = [
     m: 'Plus vite, le surplus devient surtout du gras. Israetel recommande aussi des phases de prise de 6 à 16 semaines.',
     ok: [['rpdiet', 'résumé du chapitre sur la prise de masse'], ['schoenfeld', 'p. 239 : un surplus est nécessaire ; les débutants peuvent se permettre un surplus plus grand sans trop de gras']],
     nu: [['rpdiet', 'Il conseille au moins 3 % de poids gagné par phase pour que ça compte : pour toi, 1,7 kg.'], ['helmsnut', 'p. 66-68 : plus prudent. Pour un débutant, 1 à 1,5 % du poids par mois, soit 0,55 à 0,8 kg pour toi : ton objectif de 1 kg est un peu au-dessus. Dans une étude qu\'il cite, 600 kcal de surplus en plus par jour ont donné autant de muscle, mais 5 fois plus de gras.']], ko: []},
+  {t: 'Ectomorphe : une description, pas un destin', lvl: 2,
+    d: 'Si tu es mince de nature, tu as surtout besoin de manger plus que ce qui te paraît normal, et de façon régulière. Le programme d\'entraînement ne change pas : tu progresses comme tout le monde, avec la surcharge progressive.',
+    m: 'Benardot décrit les ectomorphes comme des gabarits à jambes et doigts longs, prédisposés à rester minces avec peu de gras. La génétique fixe le point de départ, pas le résultat : on optimise ce qu\'on a reçu. Brooks rappelle d\'où vient la notion : le classement de Sheldon (1954), noté sur des photos, avec trois pôles (rond, musclé, linéaire). C\'est une description de la silhouette, pas une mesure du métabolisme.',
+    ok: [['benardot', 'p. 259 : prédisposition à rester mince, qu\'on ne change pas mais qu\'on optimise'], ['pontzer', 'ch. 3 : les métabolismes « rapides » et « lents » existent vraiment. À taille et sexe égaux, la dépense réelle peut s\'écarter de quelques centaines de kcal par jour de ce que donnent les formules. D\'où la règle : la balance tranche (principe suivant).']],
+    nu: [['brooks', 'p. 621 : la méthode des somatotypes est très subjective et demande un évaluateur bien formé. Elle classe une silhouette sans mesurer la dépense d\'énergie.'], ['helmsnut', 'p. 93 : si l\'appétit manque, rester vers 1,6 g/kg de protéines (elles rassasient) et mettre le reste en glucides et en lipides']],
+    ko: []},
   {t: 'Calories : la balance tranche, pas le calcul', lvl: 3,
     d: 'Les 2 550 kcal sont une estimation. Ce qui compte, c\'est la moyenne de tes pesées semaine après semaine (onglet Plan).',
     m: 'Pontzer montre que la dépense totale est « contrainte » : bouger plus n\'augmente pas la dépense autant que les formules le supposent, parce que le corps économise ailleurs.',
