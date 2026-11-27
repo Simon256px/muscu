@@ -1240,6 +1240,14 @@ function fmtSet(x) {
   return s || '—';
 }
 const fmtKg = w => String(Math.round(w * 100) / 100).replace('.', ',');
+// Haltères réglables : 2 kg à vide, par pas de 2 kg (2, 4, 6…), précisé le 2026-11-27.
+// Ces exercices se font avec DEUX haltères et le kg noté est le total (Hevy) : le total va par pas de 4 (2 × 2, 2 × 4…).
+const TWO_DB = new Set(['Développé couché (haltère)', 'Rowing penché avec haltères', 'Développé militaire (haltère)',
+  'Élévation latérale (haltère)', 'Curl biceps (haltère)', 'Squat bulgare (haltère)', 'Soulevé de terre roumain (haltère)',
+  'Développé incliné (haltère)', 'Oiseau / Y-raise (haltère)', 'Curl marteau (haltère)', 'Fente arrière (haltère)', 'Marche du fermier (haltère)']);
+function kgStep(name) { return TWO_DB.has(name) ? 4 : 2; }
+function roundKg(kg, name) { const st = kgStep(name); return Math.max(st, Math.round(kg / st) * st); }
+function perDb(name, w) { return TWO_DB.has(name) && w ? `2 × ${fmtKg(w / 2)} kg` : ''; }
 function fmtSec(s) { s = Math.round(s); return s >= 60 ? Math.floor(s / 60) + ' min' + (s % 60 ? ' ' + String(s % 60).padStart(2, '0') : '') : s + ' s'; }
 function fmtClock(ms) {
   const t = Math.max(0, Math.floor(ms / 1000)), h = Math.floor(t / 3600), m = Math.floor(t / 60) % 60, s = t % 60;
@@ -2066,11 +2074,11 @@ function exCard(e, ei, a) {
     </div>
   ${thinkList(e.name)}
   ${ficheDetails(e.name)}
-  <table class="sets"><thead><tr><th>Série</th><th class="prev">Précédent</th><th>kg</th><th>${t ? 'Secondes' : 'Reps'}</th><th></th></tr></thead><tbody>
+  <table class="sets"><thead><tr><th>Série</th><th class="prev">Précédent</th><th>${TWO_DB.has(e.name) ? 'kg total' : 'kg'}</th><th>${t ? 'Secondes' : 'Reps'}</th><th></th></tr></thead><tbody>
   ${e.sets.map((x, si) => `<tr class="${x.done ? 'done' : ''}">
     <td class="setno" data-prev="${last && last.sets[si] ? esc(fmtSet(last.sets[si])) : ''}">${si + 1}</td>
     <td class="prev">${last && last.sets[si] ? esc(fmtSet(last.sets[si])) : '—'}</td>
-    <td><input class="num" type="number" min="0" step="1" data-e="${ei}" data-s="${si}" data-k="w" value="${x.w}"></td>
+    <td><input class="num" type="number" min="0" step="${kgStep(e.name)}" data-e="${ei}" data-s="${si}" data-k="w" value="${x.w}"></td>
     <td><input class="num" type="number" min="0" step="${t ? 5 : 1}" data-e="${ei}" data-s="${si}" data-k="${t ? 's' : 'r'}" value="${t ? x.s : x.r}">
       ${t ? `<button class="btn ghost" data-act="timer" data-e="${ei}" data-s="${si}" title="Lancer le compte à rebours">▶</button>` : ''}</td>
     <td style="text-align:right"><button class="check" data-act="toggle" data-e="${ei}" data-s="${si}" title="Valider la série">✓</button></td>
@@ -2281,7 +2289,7 @@ function routineEditor(r, ri) {
         <button class="btn ghost" data-act="xup" data-r="${ri}" data-e="${ei}" title="Monter">↑</button><button class="btn ghost danger" data-act="xdel" data-r="${ri}" data-e="${ei}" title="Retirer l'exercice">✕</button>
       </div>
       <div class="chips">${e.sets.map((x, si) => `<span class="chip"><b>${si + 1}</b>
-        <input type="number" min="0" step="1" data-r="${ri}" data-e="${ei}" data-xs="${si}" data-k="w" value="${x.w}"> kg ×
+        <input type="number" min="0" step="${kgStep(e.name)}" data-r="${ri}" data-e="${ei}" data-xs="${si}" data-k="w" value="${x.w}"> kg ×
         <input type="number" min="0" step="${t ? 5 : 1}" data-r="${ri}" data-e="${ei}" data-xs="${si}" data-k="${t ? 's' : 'r'}" value="${t ? x.s : x.r}"> ${t ? 's' : 'reps'}</span>`).join('')}
         <button class="btn ghost" data-act="xsadd" data-r="${ri}" data-e="${ei}" title="Ajouter une série">+ série</button>
         ${e.sets.length > 1 ? `<button class="btn ghost" data-act="xsdel" data-r="${ri}" data-e="${ei}" title="Retirer la dernière série">− série</button>` : ''}</div>
@@ -2354,7 +2362,6 @@ const PHASES = [
   {name: 'Force', weeks: 'Semaines 15 → 19', text: '110 à 120 % sur les gros exercices, 4 × 5–6 reps, 3 min de repos sur les gros exercices. Semaine 19 légère, puis on relance un cycle avec tes nouvelles charges.', force: true},
 ];
 const isoDay = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-const roundKg = kg => Math.max(2, Math.round(kg / 2) * 2); // haltères : par pas de 2 kg
 function progState() {
   // nouveau programme → on repart de la semaine 1 cette semaine (l'historique des séances n'est pas touché)
   if (!S.program || S.program.id !== PROG_ID) S.program = {id: PROG_ID, start: isoDay(mondayOf(new Date())), done: {}};
@@ -2417,10 +2424,10 @@ function progSession(w, d) {
     const pct = (main ? W.pct : Math.min(W.pct, W.accPct ?? W.pct)) * (light ? .9 : 1);
     const set = sec ? {w: 0, r: 0, s: Math.max(15, Math.round(sec * pct / 5) * 5)}
       // près de 100 % on ne demande pas plus de reps que ce que tu faisais avant à cette charge
-      : kg ? {w: Math.max(2, roundKg(kg * pct) + (adj[name] || 0)), r: Math.max(3, Math.min(r, reps + Math.round((1 - pct) * 30))), s: 0}
+      : kg ? {w: roundKg(roundKg(kg * pct, name) + (adj[name] || 0), name), r: Math.max(3, Math.min(r, reps + Math.round((1 - pct) * 30))), s: 0}
       : {w: 0, r: Math.max(3, Math.round(reps * pct)), s: 0}; // poids du corps : les reps suivent le %
     return {name, type: sec ? 'time' : 'reps', rest: restFor(name, main, sec, PHASES[W.phase].force),
-      note: 'avant la pause : ' + fmtSet({w: kg, r: sec ? 0 : reps, s: sec}) + (adj[name] ? ` · bilan ${adj[name] > 0 ? '+' : ''}${adj[name]} kg` : '') + (light ? ' · semaine allégée' : ''), sets: Array.from({length: n}, () => ({...set}))};
+      note: (perDb(name, set.w) ? 'soit ' + perDb(name, set.w) + ' · ' : '') + 'avant la pause : ' + fmtSet({w: kg, r: sec ? 0 : reps, s: sec}) + (adj[name] ? ` · bilan ${adj[name] > 0 ? '+' : ''}${adj[name]} kg` : '') + (light ? ' · semaine allégée' : ''), sets: Array.from({length: n}, () => ({...set}))};
   });
   return {name: `Programme S${w + 1} – ${DAYS[progDow(w, d)]} : ${D.name}`, exercises: [warm(), ...ex]};
 }
@@ -3031,7 +3038,7 @@ function weekReview() {
   const quote = (t, d) => `« ${t.length > 70 ? t.slice(0, 69) + '…' : t} » (${dayLbl(d)})`;
   const items = [], newAdj = {}, reviewed = [];
 
-  // 1. Charges : toutes les reps faites → +2 kg ; 2 séries ou plus ratées de 2 reps → −2 kg
+  // 1. Charges : toutes les reps faites → +2 kg par haltère ; 2 séries ou plus ratées de 2 reps → −2 kg par haltère
   const up = [], down = [], bw = [];
   for (const h of progS.slice().reverse()) {
     if ((P.reviewed || {})[h.id]) continue;
@@ -3042,8 +3049,8 @@ function weekReview() {
       const miss = ps.filter((p, i) => !ds[i] || ds[i].r <= p.r - 2).length >= 2;
       if (!ps[0].w) { if (hit) bw.push(pe.name); continue; }
       const doneW = Math.max(...ds.map(x => +x.w || 0)), base = (adj[pe.name] || 0) + doneW - ps[0].w;
-      if (hit) { newAdj[pe.name] = base + 2; up.push(pe.name); }
-      else if (miss) { newAdj[pe.name] = base - 2; down.push(pe.name); }
+      if (hit) { newAdj[pe.name] = base + kgStep(pe.name); up.push(pe.name); } // +2 kg par haltère
+      else if (miss) { newAdj[pe.name] = base - kgStep(pe.name); down.push(pe.name); }
     }
     reviewed.push(h.id);
   }
@@ -3052,8 +3059,8 @@ function weekReview() {
   const chargesItem = tired => {
     if (tired) for (const n of up) delete newAdj[n];
     const upTxt = [...new Set(up)].map(short).join(', '), dnTxt = [...new Set(down)].map(short).join(', ');
-    const d = [up.length ? (tired ? `Toutes les reps faites sur ${esc(upTxt)}, mais tu es fatigué : on garde ces charges cette semaine.` : `Toutes les reps faites : <b>+2 kg</b> sur ${esc(upTxt)}.`) : '',
-      down.length ? `Plusieurs séries ratées : <b>−2 kg</b> sur ${esc(dnTxt)}.` : ''].filter(Boolean).join(' ');
+    const d = [up.length ? (tired ? `Toutes les reps faites sur ${esc(upTxt)}, mais tu es fatigué : on garde ces charges cette semaine.` : `Toutes les reps faites : <b>+2 kg par haltère</b> sur ${esc(upTxt)}.`) : '',
+      down.length ? `Plusieurs séries ratées : <b>−2 kg par haltère</b> sur ${esc(dnTxt)}.` : ''].filter(Boolean).join(' ');
     return Object.keys(newAdj).length ? {ic: '📈', t: 'Charges de tes prochaines séances', d, act: 'radj', btn: 'Appliquer aux prochaines séances'}
       : up.length ? {ic: '📈', t: 'Charges de tes prochaines séances', d} : null;
   };
