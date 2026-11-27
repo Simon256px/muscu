@@ -1,5 +1,5 @@
 // Garde l'appli dans le téléphone pour qu'elle s'ouvre sans internet.
-const CACHE = 'muscu-ef0c289246';
+const CACHE = 'muscu-13f1217ed9';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-maskable.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
