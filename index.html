@@ -706,7 +706,18 @@ nav .navstart .ns-ic{display:none}
 .hw-d b{font-size:16px;width:32px;height:32px;display:grid;place-items:center;border-radius:50%}
 .hw-d.today b{background:var(--accent);color:#fff}
 .hw-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:transparent;vertical-align:1px}
-.hw-dot.ok{background:var(--moss)} .hw-dot.plan{background:#a1a1aa} .hw-dot.cardio{background:#2f6fdf}
+.hw-dot.ok{background:var(--moss)} .hw-dot.plan{background:#a1a1aa} .hw-dot.cardio{background:#2f6fdf} .hw-dot.rest{background:#a78bfa}
+.hw-today.rd{margin-bottom:8px} .rd-act{display:flex;flex-wrap:wrap;gap:6px;margin:-2px 0 10px} .rd-act .btn{flex:1 1 auto}
+.hw-btns{gap:6px;flex-wrap:nowrap} .hw-btns .hw-other{flex:1;min-width:0}
+.mc{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin:8px 0}
+.mc-h{font-size:11px;font-weight:600;color:var(--muted);text-align:center}
+.mc-d{position:relative;display:flex;flex-direction:column;align-items:center;gap:1px;min-height:54px;padding:4px 0 8px;border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit;color:inherit;cursor:pointer}
+.mc-d.empty{border:0;background:transparent;cursor:default} .mc-d.fut{opacity:.55;cursor:default} .mc-d.today{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.mc-d b{font-size:13px} .mc-i{font-size:13px;line-height:1.2;min-height:16px;letter-spacing:-2px}
+.mc-f{display:inline-block;width:18px;height:3px;border-radius:2px;vertical-align:2px} .mc-d .mc-f{position:absolute;bottom:4px;left:50%;transform:translateX(-50%)}
+.mc-f.ok{background:var(--moss)} .mc-f.lo{background:var(--accent)} .mc-f.hi{background:#dc2626}
+.mc-leg{line-height:1.8}
+.mc-stats{grid-template-columns:repeat(2,minmax(0,1fr))} .mc-stats .stat b{font-size:19px;line-height:1.2} .mc-stats .stat small{font-size:12px;font-weight:500}
 .hw-sum{text-align:center;margin:2px 0 10px}
 .hw-today{display:flex;align-items:center;gap:10px;background:var(--elev);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
 .hw-today.live{background:var(--moss-soft);border-color:#86efac}
@@ -1242,7 +1253,7 @@ function fmtSet(x) {
 const fmtKg = w => String(Math.round(w * 100) / 100).replace('.', ',');
 // Haltères réglables : 2 kg à vide, par pas de 2 kg (2, 4, 6…), précisé le 2026-11-27.
 // Ces exercices se font avec DEUX haltères et le kg noté est le total (Hevy) : le total va par pas de 4 (2 × 2, 2 × 4…).
-const TWO_DB = new Set(['Développé couché (haltère)', 'Rowing penché avec haltères', 'Développé militaire (haltère)',
+const TWO_DB = new Set(['Développé couché (haltère)', 'Floor press (haltère)', 'Rowing penché avec haltères', 'Développé militaire (haltère)',
   'Élévation latérale (haltère)', 'Curl biceps (haltère)', 'Squat bulgare (haltère)', 'Soulevé de terre roumain (haltère)',
   'Développé incliné (haltère)', 'Oiseau / Y-raise (haltère)', 'Curl marteau (haltère)', 'Fente arrière (haltère)', 'Marche du fermier (haltère)']);
 function kgStep(name) { return TWO_DB.has(name) ? 4 : 2; }
@@ -1271,6 +1282,7 @@ function go(v) {
 }
 function render() {
   $('#tip').hidden = true;
+  foodAutoFill();
   if (view === 'session' && !S.active) view = 'home';
   keepAwake();
   if (view === 'plan') { FV.tab = 'plan'; view = 'food'; }
@@ -1299,7 +1311,7 @@ function vHome() {
     ${foodCard(tday, true)}`;
   if (foodDay(tday).length) h += `<h3 class="hsub">Ajoutés récemment</h3>${foodList(tday, 3)}`;
   else h += `<button class="btn addfood" data-act="fadd">＋ Ajouter ce que tu as mangé</button>`;
-  h += journalHome() + reviewHome();
+  h += journalHome();
   const todays = S.routines.filter(r => r.day === today);
   if (todays.length && !S.active) h += `<h2>Ta routine du ${DAYS[today].toLowerCase()}</h2>` + todays.map(routineCard).join('');
   h += `<h2>Envie d'autre chose ?</h2><div class="row">
@@ -1326,7 +1338,7 @@ function homeWeek() {
   const cols = Array.from({length: 7}, (_, i) => {
     const d = new Date(mon); d.setDate(d.getDate() + i); const k = isoDay(d), dd = did.get(k) || '';
     if (dd.includes('m')) nDone++; if (planned.has(k) || dd.includes('m')) nPlan++;
-    const dot = dd.includes('m') ? 'ok' : dd.includes('c') ? 'cardio' : planned.has(k) && k >= T ? 'plan' : '';
+    const dot = dd.includes('m') ? 'ok' : dd.includes('c') ? 'cardio' : (S.rest || {})[k] ? 'rest' : planned.has(k) && k >= T ? 'plan' : '';
     return `<div class="hw-d ${k === T ? 'today' : ''}"><span class="hw-n">${DAY2[i]}</span><b>${d.getDate()}</b><i class="hw-dot ${dot}"></i></div>`;
   }).join('');
   const lbl = HW === 0 ? 'Cette semaine' : HW === -1 ? 'Semaine dernière' : HW === 1 ? 'Semaine prochaine' : `Semaine du ${fmtDate(mon, {day: 'numeric', month: 'short'})}`;
@@ -1348,8 +1360,90 @@ function homeWeek() {
   return `<div class="card hw"><div class="hw-head"><button class="btn ghost" data-act="hwweek" data-v="-1" aria-label="Semaine précédente">‹</button><b>${lbl}</b>
       <button class="btn ghost" data-act="hwweek" data-v="1" aria-label="Semaine suivante">›</button></div>
     <div class="hw-days">${cols}</div>
-    <p class="hw-sum muted small">${nDone} séance${nDone > 1 ? 's' : ''} de muscu faite${nDone > 1 ? 's' : ''}${nPlan ? ' sur ' + nPlan + ' prévue' + (nPlan > 1 ? 's' : '') : ''} · <i class="hw-dot ok"></i> faite <i class="hw-dot plan"></i> prévue <i class="hw-dot cardio"></i> cardio</p>
-    ${row}<button class="btn ghost hw-other" data-go="routines">⇄ Choisir une autre séance</button></div>`;
+    <p class="hw-sum muted small">${nDone} séance${nDone > 1 ? 's' : ''} de muscu faite${nDone > 1 ? 's' : ''}${nPlan ? ' sur ' + nPlan + ' prévue' + (nPlan > 1 ? 's' : '') : ''} · <i class="hw-dot ok"></i> faite <i class="hw-dot plan"></i> prévue <i class="hw-dot cardio"></i> cardio <i class="hw-dot rest"></i> repos</p>
+    ${HW === 0 ? restDayCard() : ''}${row}<div class="row hw-btns"><button class="btn ghost hw-other" data-go="routines">⇄ Autre séance</button><button class="btn ghost hw-other" data-act="mopen">📅 Voir le mois</button></div></div>`;
+}
+
+/* ---------- Jours sans muscu : cardio en direct ou repos (demande du 2026-11-28) ---------- */
+// S.rest[jour] = true : « je me suis reposé ». S.cardioLive = {kind, start} : cardio en cours (chrono), enregistré à la fin
+// comme une activité (kind 'cardio'), comme « Activité déjà faite ». Le plan prévoit 2 cardios de 25 min par semaine.
+const CARDIO_KINDS = ['Marche rapide en côte', 'Vélo', 'Course à pied', 'Rameur', 'Autre activité'];
+const CARDIO_MIN = 25, CARDIO_PER_WEEK = 2;
+function dayStatus(k) {
+  const ss = allSessions().filter(x => isoDay(new Date(x.date)) === k);
+  return {m: ss.some(x => x.kind !== 'cardio'), c: ss.filter(x => x.kind === 'cardio'), rest: !!(S.rest || {})[k]};
+}
+function restDayCard() {
+  const T = isoDay(new Date()), st = dayStatus(T), L = S.cardioLive;
+  if (L) return `<div class="hw-today live rd"><span class="hw-ic">●</span><div class="hw-t"><span class="muted small">Cardio en cours · objectif ${CARDIO_MIN} min</span>
+      <b>${esc(L.kind)} · <span data-cardio>${fmtClock(Date.now() - L.start)}</span></b></div>
+      <button class="btn ghost" data-act="cdcancel">Annuler</button><button class="btn primary" data-act="cdstop">Terminer</button></div>`;
+  if (st.m || S.active) return '';
+  const pn = progNext(); if (pn && isoDay(progDate(pn[0], pn[1])) === T) return ''; // séance de muscu prévue aujourd'hui
+  const mon = mondayOf(new Date()), nC = allSessions().filter(x => x.kind === 'cardio' && new Date(x.date) >= mon).length;
+  const wk = `<span class="muted small">Cardio cette semaine : ${nC} / ${CARDIO_PER_WEEK} · ${CARDIO_MIN} min de marche rapide en côte ou de vélo</span>`;
+  if (st.c.length) return `<div class="hw-today rd"><span class="hw-ic">✅</span><div class="hw-t"><span class="muted small">Aujourd'hui</span>
+      <b>Cardio fait : ${esc(st.c.map(x => x.title + ' · ' + fmtDur(x.dur)).join(', '))}</b>${wk}</div></div>`;
+  if (st.rest) return `<div class="hw-today rd"><span class="hw-ic">😴</span><div class="hw-t"><span class="muted small">Aujourd'hui</span><b>Repos noté</b>${wk}</div>
+      <button class="btn ghost" data-act="restoff">Annuler</button></div>`;
+  return `<div class="hw-today rd"><span class="hw-ic">🌿</span><div class="hw-t"><span class="muted small">Aujourd'hui · pas de muscu prévue</span><b>Cardio ou repos ?</b>${wk}</div></div>
+    <div class="rd-act"><button class="btn primary" data-act="cdpick">🏃 Démarrer le cardio</button><button class="btn" data-act="reston">😴 Je me repose</button><button class="btn ghost" data-act="actadd">Déjà fait</button></div>`;
+}
+function cardioPick() {
+  modal(`<h2 style="margin-top:0">🏃 Démarrer le cardio</h2>
+    <p class="small muted">Un chrono tourne pendant ton cardio (${CARDIO_MIN} min prévues). Touche « Terminer » à la fin : la durée est enregistrée.</p>
+    <div class="fr">${CARDIO_KINDS.map((k, i) => `<button type="button" class="fr-i" data-act="cdstart" data-i="${i}"><span class="fe-ic">${i === 1 ? '🚴' : i === 3 ? '🚣' : '🏃'}</span><span class="fe-t"><b>${esc(k)}</b></span><span class="lx-chev">▶</span></button>`).join('')}</div>
+    <div class="row" style="margin-top:12px"><div class="spacer"></div><button class="btn" data-act="close">Annuler</button></div>`);
+}
+function cardioStop() {
+  const L = S.cardioLive; if (!L) return;
+  const sec = Math.round((Date.now() - L.start) / 1000), t = new Date(L.start);
+  S.cardioLive = null;
+  if (sec < 60) { save(); render(); return toast('Moins d\'une minute : rien enregistré'); }
+  S.history.unshift({id: uid(), src: 'app', kind: 'cardio', title: L.kind, date: t.toISOString(), dur: sec, note: '', ex: [{name: L.kind, sets: [{w: 0, r: 0, s: sec}]}]});
+  S.history.sort((a, b) => new Date(b.date) - new Date(a.date));
+  if (S.rest) delete S.rest[isoDay(t)];
+  save(); render(); toast('Cardio enregistré : ' + fmtDur(sec));
+  ghPush('Cardio du ' + fmtDate(t, {day: 'numeric', month: 'short', year: 'numeric'}) + ' : ' + L.kind);
+}
+
+/* ---------- Le mois en un coup d'œil (demande du 2026-11-28) ---------- */
+// Une case par jour : 🏋️ muscu, 🏃 cardio, 😴 repos noté, point gris = séance prévue ; trait de couleur = calories du jour.
+let MV = 0;
+function monthSheet() {
+  const now = new Date(), T = isoDay(now), m0 = new Date(now.getFullYear(), now.getMonth() + MV, 1);
+  const nDays = new Date(m0.getFullYear(), m0.getMonth() + 1, 0).getDate(), lead = (m0.getDay() + 6) % 7;
+  const P = progState(), planned = new Set();
+  progDates().forEach((dt, k) => { if (!P.done[Math.floor(k / PROG_DAYS.length) + '-' + (k % PROG_DAYS.length)]) planned.add(isoDay(dt)); });
+  const W = S.weights || {}, tg = FOOD_T();
+  let nM = 0, nC = 0, cSec = 0, nR = 0, kSum = 0, kN = 0, w0 = null, w1 = null, nPlan = 0;
+  const cells = [];
+  for (let i = 0; i < lead; i++) cells.push('<span class="mc-d empty"></span>');
+  for (let d = 1; d <= nDays; d++) {
+    const k = isoDay(new Date(m0.getFullYear(), m0.getMonth(), d)), st = dayStatus(k), sk = foodSum(foodDay(k)).k, fut = k > T;
+    if (st.m) nM++; if (st.c.length) { nC += st.c.length; cSec += st.c.reduce((a, x) => a + (x.dur || 0), 0); } if (st.rest) nR++;
+    if (!fut && sk) { kSum += sk; kN++; }
+    if (W[k] != null) { if (w0 == null) w0 = W[k]; w1 = W[k]; }
+    const plan = planned.has(k) && k >= T; if (plan) nPlan++;
+    const ic = [st.m ? '🏋️' : '', st.c.length ? '🏃' : '', st.rest ? '😴' : ''].join('') || (plan ? '<i class="hw-dot plan"></i>' : '');
+    const fc = !sk || fut ? '' : sk > tg.k * 1.1 ? 'hi' : sk >= tg.k * .9 ? 'ok' : 'lo';
+    cells.push(`<button type="button" class="mc-d ${k === T ? 'today' : ''} ${fut ? 'fut' : ''}" ${fut ? 'disabled' : `data-act="mvday" data-day="${k}"`}
+      aria-label="${esc(fmtDate(new Date(k + 'T12:00'), {weekday: 'long', day: 'numeric'}))}"><b>${d}</b><span class="mc-i">${ic}</span>${fc ? `<i class="mc-f ${fc}"></i>` : ''}</button>`);
+  }
+  const title = fmtDate(m0, {month: 'long', year: 'numeric'}), isCur = MV === 0;
+  const stat = (l, v) => `<div class="stat"><span class="small">${l}</span><b>${v}</b></div>`;
+  modal(`<div class="lx-sheet"><div class="lx-grab" aria-hidden="true"></div>
+    <div class="lx-head"><h2>Mon mois</h2><button type="button" class="lx-x" data-act="close" aria-label="Fermer">✕</button></div>
+    <div class="hw-head"><button class="btn ghost" data-act="mvmove" data-v="-1" aria-label="Mois précédent">‹</button><b>${esc(title.charAt(0).toUpperCase() + title.slice(1))}</b>
+      <button class="btn ghost" data-act="mvmove" data-v="1" ${isCur ? 'disabled' : ''} aria-label="Mois suivant">›</button></div>
+    <div class="mc">${DAY2.map(x => `<span class="mc-h">${x}</span>`).join('')}${cells.join('')}</div>
+    <p class="small muted mc-leg">🏋️ muscu · 🏃 cardio · 😴 repos · <i class="hw-dot plan"></i> prévue · calories : <i class="mc-f ok"></i> dans l'objectif <i class="mc-f lo"></i> en dessous <i class="mc-f hi"></i> au-dessus</p>
+    <div class="stats mc-stats">${stat('Muscu', `${nM} séance${nM > 1 ? 's' : ''}${isCur && nPlan ? ` <small>(+${nPlan} prévue${nPlan > 1 ? 's' : ''})</small>` : ''}`)}
+      ${stat('Cardio', `${nC} · ${fmtDur(cSec)}`)}${stat('Repos notés', nR)}
+      ${stat('Calories / jour', kN ? Math.round(kSum / kN).toLocaleString('fr-FR') + ' <small>kcal</small>' : '—')}
+      ${stat('Poids', w0 == null ? '—' : w0 === w1 ? kgf(w0) + ' kg' : `${kgf(w0)} → ${kgf(w1)} kg`)}</div>
+    <p class="small muted" style="margin:8px 2px 0">Touche un jour pour voir le détail : séances, repas, journal.</p></div>`);
+  $('#modalbox').classList.add('sheet');
 }
 
 /* ---------- Bouton central « Démarrer » : pesée rapide, puis la séance du jour ---------- */
@@ -1376,8 +1470,9 @@ function moreSheet() {
     <div class="lx-head"><h2>Plus</h2><button type="button" class="lx-x" data-act="close" aria-label="Fermer">✕</button></div><div class="more">
     ${it('data-go="savoir"', '📚', 'Savoir', 'Ce que disent tes livres : principes, débats, méthode')}
     ${it('data-go="routines"', '📋', 'Routines', 'Tes routines, la sauvegarde et l\'import')}
+    ${it('data-act="mopen"', '📅', 'Mon mois', 'Ce qui a été fait jour par jour : muscu, cardio, repos, repas, poids')}
     ${it('data-go="history"', '🕘', 'Historique', 'Toutes tes séances et tes journées')}
-    ${it('data-go="plan"', '🍽', 'Mon plan repas', 'Repas, recettes, équivalences, courses, poids, bilan')}
+    ${it('data-go="plan"', '🍽', 'Mon plan repas', 'Repas, recettes, équivalences, courses, poids')}
     ${it(`data-act="jopen" data-day="${isoDay(new Date())}"`, '📝', 'Journal du jour', 'Sommeil, énergie, courbatures, repas, douleur')}
     ${it('data-act="wopen"', '⚖️', 'Ajouter un poids', 'Une pesée le matin, à jeun')}</div></div>`);
   $('#modalbox').classList.add('sheet');
@@ -1452,6 +1547,23 @@ const FOOD_T = () => ({k: 2550 + (S.kcalAdj || 0), p: 155, c: 330, f: 70});
 const MAC = [['p', 'Protéines', '#e8590c', '🍗'], ['c', 'Glucides', '#d9a400', '🌾'], ['f', 'Lipides', '#2f6fdf', '🥑']];
 let FV = {tab: 'log', day: null}, FA = {mode: 'search', q: '', pick: null}, scan = null;
 const foodDay = d => (S.food || {})[d] || [];
+// Repas du plan notés d'office (demande du 2026-11-28) : chaque jour, depuis le jour où la fonction est arrivée,
+// les 5 repas de MEALS sont écrits ; l'utilisateur ne touche que ce qui change (modifier, supprimer, ajouter).
+// Un jour déjà écrit (même vidé à la main) n'est jamais réécrit. Les jours d'avant S.foodAuto ne sont pas touchés.
+function planEntry(m, day) {
+  const tot = MEALS.reduce((a, x) => a + x.k, 0);
+  return {id: uid(), t: new Date(day + 'T' + m.t).getTime(), n: m.name, g: 0, k: m.k, p: m.p,
+    c: Math.round(330 * m.k / tot), f: Math.round(70 * m.k / tot), src: 'plan'};
+}
+function foodAutoFill() {
+  const T = isoDay(new Date());
+  if (!S.foodAuto) S.foodAuto = T;
+  S.food = S.food || {};
+  let d = S.foodAuto, changed = false;
+  for (let i = 0; d <= T && i < 400; i++, d = dayShift(d, 1))
+    if (S.food[d] === undefined) { S.food[d] = MEALS.map(m => planEntry(m, d)); changed = true; }
+  if (changed) save();
+}
 const foodSum = L => L.reduce((a, x) => ({k: a.k + (+x.k || 0), p: a.p + (+x.p || 0), c: a.c + (+x.c || 0), f: a.f + (+x.f || 0)}), {k: 0, p: 0, c: 0, f: 0});
 const f1 = x => (Math.round((+x || 0) * 10) / 10).toLocaleString('fr-FR');
 function ring(frac, size, stroke, color, inner) {
@@ -1503,6 +1615,7 @@ function vFood() {
       <button class="btn ghost" data-act="fvweek" data-v="7" ${isoDay(nextMon) > T ? 'disabled' : ''} aria-label="Semaine suivante">›</button></div>
     ${foodCard(FV.day)}
     <h2>${FV.day === T ? 'Ajoutés aujourd\'hui' : 'Ce jour-là'}</h2>
+    ${FV.day >= (S.foodAuto || T) ? `<p class="small muted" style="margin:-4px 2px 10px">Les repas de ton plan sont notés d'office. Touche un repas pour le corriger ou le supprimer, et ＋ pour ajouter un extra.</p>` : ''}
     ${foodList(FV.day)}
     <p class="small muted fsrc">Valeurs : ANSES, table Ciqual 2025 (Licence Ouverte). Produits scannés : Open Food Facts (ODbL). Objectifs : ton plan (${tg.k.toLocaleString('fr-FR')} kcal, ${tg.p} g de protéines, ${tg.c} g de glucides, ${tg.f} g de lipides).</p>
     <button class="fab" data-act="fadd" aria-label="Ajouter un aliment">＋</button>`;
@@ -1613,8 +1726,12 @@ function foodEdit(day, id) {
     <div class="lx-head"><h2>${esc(x.n)}</h2><button type="button" class="lx-x" data-act="close" aria-label="Fermer">✕</button></div>
     <div class="fq-tot" id="fatot" style="margin-top:12px">${foodTotHtml(x)}</div>
     ${x.per ? `<label class="fq-l">Quantité<span class="fq-in"><input id="feg" class="field" type="number" inputmode="decimal" min="1" step="1" value="${Math.round(x.g)}" data-day="${day}" data-id="${id}"> g</span></label>` : ''}
-    <div class="lx-act"><button type="button" class="btn danger" data-act="fdel" data-day="${day}" data-id="${id}">Supprimer</button>
-      ${x.per ? `<button type="button" class="btn primary" data-act="fesave" data-day="${day}" data-id="${id}">Enregistrer</button>` : '<button type="button" class="btn" data-act="close">Fermer</button>'}</div></div>`);
+    ${x.src === 'plan' ? `<p class="small muted" style="margin:12px 0 4px">Repas du plan, noté d'office. Tu as mangé autre chose ? Corrige les chiffres, ou supprime-le et ajoute ce que tu as mangé.</p>
+      <div class="fm-g"><label>Calories (kcal)<input id="fek" class="field" type="number" inputmode="decimal" min="0" step="1" value="${Math.round(x.k)}"></label>
+      <label>Protéines (g)<input id="fep" class="field" type="number" inputmode="decimal" min="0" step="1" value="${Math.round(x.p)}"></label></div>` : ''}
+    <div class="lx-act"><button type="button" class="btn danger" data-act="fdel" data-day="${day}" data-id="${id}">${x.src === 'plan' ? 'Pas mangé (supprimer)' : 'Supprimer'}</button>
+      ${x.per ? `<button type="button" class="btn primary" data-act="fesave" data-day="${day}" data-id="${id}">Enregistrer</button>`
+        : x.src === 'plan' ? `<button type="button" class="btn primary" data-act="feplan" data-day="${day}" data-id="${id}">Enregistrer</button>` : '<button type="button" class="btn" data-act="close">Fermer</button>'}</div></div>`);
   $('#modalbox').classList.add('sheet');
 }
 
@@ -1868,6 +1985,7 @@ const EXINFO = Object.fromEntries([
   ['Box jump','jump','legs','Cuisses, explosivité','Saute sur la box à deux pieds, réception souple, redescends en marchant.'],
   ['Pompes','pushup','push','Pectoraux, triceps, épaules','Corps gainé et droit, descends la poitrine près du sol, pousse.'],
   ['Pompes lestées','pushup','push','Pectoraux, triceps, épaules','Pompes avec un poids sur le dos (sac ou disque).'],
+  ['Pompes pieds surélevés (haltères)','pushup','push','Haut des pectoraux, triceps, épaules','Pieds sur le canapé, mains sur deux haltères au sol : descends la poitrine entre les haltères, sac lesté sur le dos.'],
   ['Pompes prise serrée','pushup','push','Triceps, pectoraux','Mains sous les épaules, coudes collés au corps.'],
   ['Pompes diamant','pushup','push','Triceps, pectoraux','Mains jointes en losange sous la poitrine.'],
   ['Pompes inclinées','pushup','push','Pectoraux, triceps','Mains sur un banc : plus facile que les pompes au sol.'],
@@ -2232,6 +2350,7 @@ function beep() {
 function tick() {
   const txt = fmtClock(elapsed());
   document.querySelectorAll('[data-clock]').forEach(n => n.textContent = txt);
+  if (S.cardioLive) { const c = fmtClock(Date.now() - S.cardioLive.start); document.querySelectorAll('[data-cardio]').forEach(n => n.textContent = c); }
   const mini = $('#miniclock');
   mini.hidden = !S.active || view === 'session';
   if (S.active) mini.textContent = (S.active.pausedAt ? '⏸ ' : '● ') + txt;
@@ -2306,10 +2425,11 @@ function routineEditor(r, ri) {
 const PROG_ID = 'tank-4j-2026-11';
 const PROG_DAYS = [
   {dow: 1, name: 'Haut du corps A', ex: [
-    ['Développé couché (haltère)', 40, 10, 0, true],
+    // aucun banc, ni chez toi ni à la salle (2026-11-28) : développé au sol, pompes pieds surélevés à la place de l'incliné
+    ['Floor press (haltère)', 40, 10, 0, true, null, 'repère : développé couché sur banc avant la pause, 40 kg × 10'],
     ['Rowing penché avec haltères', 32, 10, 0, true],
     ['Développé militaire (haltère)', 24, 12, 0, false],
-    ['Traction pronation', 0, 8, 0, false, ['Pull-over (haltère)', 16, 15]],
+    ['Traction pronation', 0, 8, 0, false, ['Rowing un bras (haltère)', 22, 12]],
     ['Élévation latérale (haltère)', 12, 20, 0, false],
     ['Curl biceps (haltère)', 24, 8, 0, false]]},
   {dow: 2, name: 'Bas du corps A', ex: [
@@ -2321,8 +2441,8 @@ const PROG_DAYS = [
     ['Marche du fermier (haltère)', 0, 0, 40, false]]},
   {dow: 4, name: 'Haut du corps B', ex: [
     ['Traction pronation', 0, 8, 0, true, ['Rowing un bras (haltère)', 22, 12]],
-    ['Développé incliné (haltère)', 24, 10, 0, true],
-    ['Pompes lestées', 15, 10, 0, false],
+    ['Pompes pieds surélevés (haltères)', 10, 10, 0, true, null, 'repère estimé : 10 kg de lest × 10 (avant la pause : pompes lestées, 15 kg × 10)'],
+    ['Floor press (haltère)', 32, 12, 0, false, null, 'repère estimé : 32 kg × 12 (avant la pause : développé couché sur banc, 40 kg × 10)'],
     ['Oiseau / Y-raise (haltère)', 8, 12, 0, false],
     ['Extension triceps (haltère)', 14, 12, 0, false],
     ['Curl marteau (haltère)', 20, 12, 0, false]]},
@@ -2422,14 +2542,14 @@ function progSession(w, d) {
     // sans barre de traction, on prend le remplaçant prévu pour ce jour-là
     const [name, kg, reps] = alt && !bar ? alt : [name0, kg0, reps0];
     let [n, r] = main ? W.main : W.acc;
-    if (light) n = Math.max(2, n - 1); // semaine allégée par le bilan : une série de moins et −10 %
+    if (light) n = Math.max(2, n - 1); // semaine allégée (réglage gardé des anciens bilans) : une série de moins et −10 %
     const pct = (main ? W.pct : Math.min(W.pct, W.accPct ?? W.pct)) * (light ? .9 : 1);
     const set = sec ? {w: 0, r: 0, s: Math.max(15, Math.round(sec * pct / 5) * 5)}
       // près de 100 % on ne demande pas plus de reps que ce que tu faisais avant à cette charge
       : kg ? {w: roundKg(roundKg(kg * pct, name) + (adj[name] || 0), name), r: Math.max(3, Math.min(r, reps + Math.round((1 - pct) * 30))), s: 0}
       : {w: 0, r: Math.max(3, Math.round(reps * pct)), s: 0}; // poids du corps : les reps suivent le %
     return {name, type: sec ? 'time' : 'reps', rest: restFor(name, main, sec, PHASES[W.phase].force),
-      note: (perDb(name, set.w) ? 'soit ' + perDb(name, set.w) + ' · ' : '') + (ref && !(alt && !bar) ? ref : 'avant la pause : ' + fmtSet({w: kg, r: sec ? 0 : reps, s: sec})) + (adj[name] ? ` · bilan ${adj[name] > 0 ? '+' : ''}${adj[name]} kg` : '') + (light ? ' · semaine allégée' : ''), sets: Array.from({length: n}, () => ({...set}))};
+      note: (perDb(name, set.w) ? 'soit ' + perDb(name, set.w) + ' · ' : '') + (ref && !(alt && !bar) ? ref : 'avant la pause : ' + fmtSet({w: kg, r: sec ? 0 : reps, s: sec})) + (adj[name] ? ` · ajusté ${adj[name] > 0 ? '+' : ''}${adj[name]} kg` : '') + (light ? ' · semaine allégée' : ''), sets: Array.from({length: n}, () => ({...set}))};
   });
   return {name: `Programme S${w + 1} – ${DAYS[progDow(w, d)]} : ${D.name}`, exercises: [warm(), ...ex]};
 }
@@ -2508,6 +2628,7 @@ const PHASE_CUES = {
   'Floor press (haltère)': {con: 'Pousse, coudes à 45°', haut: 'Bras tendus au-dessus de la poitrine', ecc: 'Descends doucement', bas: 'Coudes posés 1 s, sans relâcher'},
   'Développé incliné (haltère)': {con: 'Pousse en rapprochant les haltères', haut: 'Fesses collées au banc', ecc: 'Descends en 2 s', bas: 'Étirement du haut des pectoraux'},
   'Pompes lestées': {ecc: 'Descends gainé, bras à 45°', bas: 'Poitrine au sol', con: 'Pousse le sol loin de toi', haut: 'Coudes tendus, fesses serrées'},
+  'Pompes pieds surélevés (haltères)': {ecc: 'Descends gainé, bras à 45°', bas: 'Poitrine entre les haltères', con: 'Pousse le sol loin de toi', haut: 'Coudes tendus, fesses serrées'},
   'Rowing penché avec haltères': {con: 'Coudes vers les hanches', haut: 'Serre les omoplates 1 s', ecc: 'Redescends, dos plat', bas: 'Bras longs, épaules basses'},
   'Rowing un bras (haltère)': {con: 'Coude en arrière, le long du corps', haut: 'Serre le dos', ecc: 'Redescends lentement', bas: 'Bras long, dos plat'},
   'Développé militaire (haltère)': {con: 'Pousse au-dessus des oreilles', haut: 'Côtes basses, fesses serrées', ecc: 'Redescends aux épaules', bas: 'Coudes un peu devant'},
@@ -2533,7 +2654,7 @@ const PHASE_CUES = {
 // repères dessinés : [articulation, articulation, légende]
 const GUIDES = {
   'Développé couché (haltère)': [['E1', 'W1', 'Avant-bras vertical']], 'Floor press (haltère)': [['E1', 'W1', 'Avant-bras vertical']],
-  'Développé incliné (haltère)': [['E1', 'W1', 'Avant-bras vertical']], 'Pompes lestées': [['N', 'F1', 'Corps droit des épaules aux pieds']],
+  'Développé incliné (haltère)': [['E1', 'W1', 'Avant-bras vertical']], 'Pompes lestées': [['N', 'F1', 'Corps droit des épaules aux pieds']], 'Pompes pieds surélevés (haltères)': [['N', 'F1', 'Corps droit des épaules aux pieds']],
   'Rowing penché avec haltères': [['N', 'P', 'Dos plat']], 'Rowing un bras (haltère)': [['N', 'P', 'Dos plat']],
   'Développé militaire (haltère)': [['N', 'P', 'Buste droit, sans cambrer']], 'Traction pronation': [['N', 'P', 'Corps gainé, sans balancier']],
   'Élévation latérale (haltère)': [['N', 'W1', 'Jusqu\'à l\'horizontale']], 'Oiseau / Y-raise (haltère)': [['N', 'W1', 'Bras en Y']],
@@ -2550,7 +2671,7 @@ const GUIDES = {
 // muscles : p principaux, s secondaires
 const MUSCLES = {
   'Développé couché (haltère)': {p: ['pecs', 'triceps'], s: ['delt_a']}, 'Floor press (haltère)': {p: ['pecs', 'triceps'], s: ['delt_a']},
-  'Développé incliné (haltère)': {p: ['pecs', 'delt_a'], s: ['triceps']}, 'Pompes lestées': {p: ['pecs', 'triceps'], s: ['delt_a', 'abs']},
+  'Développé incliné (haltère)': {p: ['pecs', 'delt_a'], s: ['triceps']}, 'Pompes lestées': {p: ['pecs', 'triceps'], s: ['delt_a', 'abs']}, 'Pompes pieds surélevés (haltères)': {p: ['pecs', 'delt_a', 'triceps'], s: ['abs']},
   'Rowing penché avec haltères': {p: ['lats', 'upperback'], s: ['delt_p', 'biceps', 'lowback', 'forearms']},
   'Rowing un bras (haltère)': {p: ['lats', 'upperback'], s: ['delt_p', 'biceps', 'forearms']},
   'Développé militaire (haltère)': {p: ['delt_a', 'delt_l', 'triceps'], s: ['traps', 'abs']},
@@ -2907,14 +3028,14 @@ function coPanel() {
     : CO.mode === 'end' ? `<b>Toutes les séries sont validées 💪</b><span class="muted small">Ferme le coach et touche « Terminer » pour enregistrer la séance.</span>` : '';
 }
 
-/* ---------- Journal de bord, activités et bilan de la semaine ---------- */
+/* ---------- Journal de bord et activités ---------- */
 // Le journal (S.journal[jour]) : sommeil, énergie, courbatures, repas, douleur, note libre ; le poids va dans S.weights.
-// Le bilan relit les 7 derniers jours (journal, pesées, séances, activités) et propose des réglages à appliquer d'un geste.
+// Plus de bilan automatique (2026-11-28) : l'utilisateur demande lui-même à l'IA d'adapter le programme à ses perfs.
 const ACTIVITIES = ['Course à pied', 'Marche rapide', 'Vélo', 'Natation', 'Sport collectif', 'Autre activité'];
 function actForm() {
   const t = isoDay(new Date());
   modal(`<h2 style="margin-top:0">🏃 Activité déjà faite</h2>
-    <p class="small muted">Course, marche, vélo… Elle compte dans tes stats et ton bilan, sans toucher au programme.</p>
+    <p class="small muted">Course, marche, vélo… Elle compte dans tes stats, sans toucher au programme.</p>
     <div class="jform">
       <label>Activité <select class="field" id="actkind">${ACTIVITIES.map(a => `<option>${esc(a)}</option>`).join('')}</select></label>
       <label>Jour <input type="date" class="field" id="actday" value="${t}" max="${t}"></label>
@@ -2955,7 +3076,6 @@ function journalForm(day) {
       <label>Douleur : où ? (vide si rien) <input class="field" id="jpain" value="${esc(j.pain || '')}" placeholder="ex. épaule droite, genou gauche"></label>
       <label>Note du jour <textarea class="field" id="jnote" rows="3" placeholder="La séance, ton ressenti, ce qui a été facile ou dur, le stress, la faim…">${esc(j.note || '')}</textarea></label>
     </div>
-    <p class="small muted" style="margin:10px 0 0">L'appli lit aussi ta note : « facile », « crevé », « mal à l'épaule », « pas faim »… comptent dans le bilan.</p>
     <div class="row" style="margin-top:14px"><div class="spacer"></div><button class="btn" data-act="close">Annuler</button><button class="btn ok" data-act="jsave">Enregistrer</button></div>`);
 }
 function journalPick(k, v) {
@@ -2988,7 +3108,7 @@ function journalHome() {
   const day = isoDay(new Date()), j = (S.journal || {})[day];
   return `<div class="card"><div class="row"><div style="flex:1;min-width:180px"><div class="exname">📝 Journal du jour</div>
     <div class="muted small">${j ? esc(journalSummary(j, day)) + (j.note ? ' · « ' + esc(j.note.slice(0, 80)) + (j.note.length > 80 ? '…' : '') + ' »' : '')
-      : '30 secondes : poids, sommeil, énergie, repas, ressenti. Ton bilan de la semaine s\'en sert.'}</div></div>
+      : '30 secondes : poids, sommeil, énergie, repas, ressenti. Utile quand tu demandes une adaptation.'}</div></div>
     <div class="row" style="gap:6px"><button class="btn ${j ? '' : 'primary'}" data-act="jopen" data-day="${day}">${j ? 'Modifier' : 'Remplir'}</button>
     <button class="btn" data-act="dayopen" data-day="${day}">📅 Mes journées</button></div></div></div>`;
 }
@@ -3003,145 +3123,6 @@ function journalList() {
     }).join('');
   return `<div class="card"><div class="row"><button class="btn primary" data-act="jopen">📝 Remplir aujourd'hui</button><button class="btn" data-act="actadd">🏃 Activité déjà faite</button></div>
     ${rows ? `<table class="ptable" style="margin-top:10px"><tbody>${rows}</tbody></table>` : '<p class="small muted" style="margin:10px 0 0">Rien encore : remplis ton premier jour.</p>'}</div>`;
-}
-
-// signes repérés dans la note et la douleur (mots simples, montrés tels quels dans le bilan)
-const PAIN_MAP = [
-  [/[ée]paule/i, 'épaule', ['Développé militaire (haltère)', 'Élévation latérale (haltère)', 'Développé couché (haltère)', 'Développé incliné (haltère)', 'Pompes lestées', 'Pull-over (haltère)']],
-  [/genou/i, 'genou', ['Squat bulgare (haltère)', 'Goblet squat (kettlebell)', 'Fente arrière (haltère)']],
-  [/dos|lombaire|reins/i, 'dos', ['Soulevé de terre roumain (haltère)', 'Rowing penché avec haltères', 'Soulevé de terre roumain une jambe (haltère)']],
-  [/coude/i, 'coude', ['Curl biceps (haltère)', 'Curl marteau (haltère)', 'Extension triceps (haltère)', 'Traction pronation']],
-  [/poignet|avant-bras/i, 'poignet', ['Pompes lestées', 'Curl marteau (haltère)', 'Curl biceps (haltère)', 'Développé couché (haltère)', 'Développé incliné (haltère)', 'Marche du fermier (haltère)']],
-  [/hanche|aine/i, 'hanche', ['Fente arrière (haltère)', 'Squat bulgare (haltère)', 'Hip thrust (haltère)', 'Hip thrust une jambe (haltère)']],
-  [/cheville|mollet|achille/i, 'cheville ou mollet', ['Mollets une jambe', 'Fente arrière (haltère)']],
-];
-const NOTE_SIGNS = {
-  fatigue: /fatigu|crev[ée]|[ée]puis|naze|à plat|vid[ée]/i,
-  sommeil: /mal dormi|insomni|pas dormi|peu dormi|r[ée]veill/i,
-  repas: /pas faim|saut[ée]|oubli[ée].{0,15}repas|pas mang|trop mang|ballonn/i,
-  stress: /stress|angoiss|anxi/i,
-  facile: /facile|trop l[ée]ger|tranquille/i,
-  dur: /trop dur|rat[ée]|[ée]chec|pas r[ée]ussi|pas pu finir/i,
-};
-let REVIEW = null; // réglages proposés par le dernier bilan affiché
-function weekReview() {
-  const today = startOfDay(new Date()), dayN = k => { const x = new Date(today); x.setDate(x.getDate() - k); return isoDay(x); };
-  const days = Array.from({length: 7}, (_, i) => dayN(6 - i)), prev = Array.from({length: 7}, (_, i) => dayN(13 - i));
-  const J = S.journal || {}, Wt = S.weights || {}, P = progState(), adj = P.adj || {};
-  const avg = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null;
-  const js = days.filter(d => J[d]).map(d => ({day: d, ...J[d]}));
-  const sleeps = js.map(j => j.sleep).filter(v => v != null), energies = js.map(j => j.energy).filter(v => v != null);
-  const wNow = days.map(d => Wt[d]).filter(v => v != null), wPrev = prev.map(d => Wt[d]).filter(v => v != null);
-  const dW = wNow.length && wPrev.length ? avg(wNow) - avg(wPrev) : null;
-  const inWin = h => { const d = isoDay(new Date(h.date)); return d >= days[0] && d <= days[6]; };
-  const hist = S.history.filter(inWin), keyOf = new Map(Object.entries(P.done).map(([k, id]) => [id, k]));
-  const progS = hist.filter(h => keyOf.has(h.id)), cardio = hist.filter(h => h.kind === 'cardio');
-  const planned = progDates().filter(d => { const x = isoDay(d); return x >= days[0] && x <= days[6] && x <= isoDay(today); }).length;
-  const dayLbl = d => fmtDate(new Date(d + 'T12:00'), {weekday: 'short'});
-  const quote = (t, d) => `« ${t.length > 70 ? t.slice(0, 69) + '…' : t} » (${dayLbl(d)})`;
-  const items = [], newAdj = {}, reviewed = [];
-
-  // 1. Charges : toutes les reps faites → +2 kg par haltère ; 2 séries ou plus ratées de 2 reps → −2 kg par haltère
-  const up = [], down = [], bw = [];
-  for (const h of progS.slice().reverse()) {
-    if ((P.reviewed || {})[h.id]) continue;
-    const [w, d] = keyOf.get(h.id).split('-').map(Number), plan = progSession(w, d);
-    for (const pe of plan.exercises) {
-      const de = h.ex.find(x => x.name === pe.name); if (!de || pe.type !== 'reps') continue;
-      const ps = pe.sets, ds = de.sets, hit = ds.length >= ps.length && ps.every((p, i) => ds[i] && ds[i].r >= p.r);
-      const miss = ps.filter((p, i) => !ds[i] || ds[i].r <= p.r - 2).length >= 2;
-      if (!ps[0].w) { if (hit) bw.push(pe.name); continue; }
-      const doneW = Math.max(...ds.map(x => +x.w || 0)), base = (adj[pe.name] || 0) + doneW - ps[0].w;
-      if (hit) { newAdj[pe.name] = base + kgStep(pe.name); up.push(pe.name); } // +2 kg par haltère
-      else if (miss) { newAdj[pe.name] = base - kgStep(pe.name); down.push(pe.name); }
-    }
-    reviewed.push(h.id);
-  }
-  const short = n => n.replace(/ \((haltère|kettlebell)\)/, '');
-  // l'élément « Charges » est ajouté à la fin : il dépend de la fatigue (fatigué → on ne monte pas)
-  const chargesItem = tired => {
-    if (tired) for (const n of up) delete newAdj[n];
-    const upTxt = [...new Set(up)].map(short).join(', '), dnTxt = [...new Set(down)].map(short).join(', ');
-    const d = [up.length ? (tired ? `Toutes les reps faites sur ${esc(upTxt)}, mais tu es fatigué : on garde ces charges cette semaine.` : `Toutes les reps faites : <b>+2 kg par haltère</b> sur ${esc(upTxt)}.`) : '',
-      down.length ? `Plusieurs séries ratées : <b>−2 kg par haltère</b> sur ${esc(dnTxt)}.` : ''].filter(Boolean).join(' ');
-    return Object.keys(newAdj).length ? {ic: '📈', t: 'Charges de tes prochaines séances', d, act: 'radj', btn: 'Appliquer aux prochaines séances'}
-      : up.length ? {ic: '📈', t: 'Charges de tes prochaines séances', d} : null;
-  };
-  if (bw.length) items.push({ic: '🤸', t: 'Exercices au poids du corps réussis', d: `${esc([...new Set(bw)].map(short).join(', '))} : ajoute 1 à 2 reps ou descends en 3 s la prochaine fois.`});
-
-  // 2. Poids et calories (objectif +0,25 kg par semaine)
-  const foodLow = js.filter(j => j.food === 2).length, kcalRecent = S.kcalAt && (today - new Date(S.kcalAt + 'T00:00')) / 864e5 < 7;
-  const started = (today - new Date(P.start + 'T00:00')) / 864e5;
-  if (wNow.length < 3) items.push({ic: '⚖️', t: `Pèse-toi au moins 3 matins (${wNow.length} cette semaine)`, d: 'Sans moyenne de la semaine, l\'appli ne peut pas régler tes calories.'});
-  else if (dW == null) items.push({ic: '⚖️', t: `Moyenne de la semaine : ${kgf(avg(wNow))} kg`, d: 'La semaine prochaine, l\'appli la comparera à celle-ci.'});
-  else if (started < 14) items.push({ic: '⚖️', t: `${dW >= 0 ? '+' : ''}${kgf(dW, 2)} kg en une semaine`, d: 'Les 2 premières semaines, le poids bouge surtout à cause de l\'eau et de la créatine : on ne touche pas aux calories.'});
-  else if (dW < .15) {
-    if (foodLow >= 3) items.push({ic: '🍽', t: `Prise trop lente (${dW >= 0 ? '+' : ''}${kgf(dW, 2)} kg), mais repas incomplets`, d: `Tu as noté « pas assez » ${foodLow} jours. Mange d'abord tout le plan avant d'ajouter des calories.`});
-    else items.push({ic: '🍽', t: `Prise trop lente : ${dW >= 0 ? '+' : ''}${kgf(dW, 2)} kg (objectif +0,25)`, d: 'Ajoute environ 150 kcal par jour : un grand verre de lait, ou 1 c. à soupe d\'huile dans un plat.', act: kcalRecent ? null : 'rkcal', v: 150, btn: '+150 kcal par jour'});
-  } else if (dW > .45) items.push({ic: '🍽', t: `Prise trop rapide : +${kgf(dW, 2)} kg (objectif +0,25)`, d: 'Enlève environ 150 kcal par jour, par exemple la moitié du beurre de cacahuète.', act: kcalRecent ? null : 'rkcal', v: -150, btn: '−150 kcal par jour'});
-  else items.push({ic: '✅', t: `Poids : +${kgf(dW, 2)} kg, dans l'objectif`, d: 'Garde tes repas tels quels.'});
-
-  // 3. Récupération
-  const sleepAvg = avg(sleeps), enAvg = avg(energies), soreHigh = js.filter(j => j.sore === 2).length;
-  if (sleeps.length >= 3 && sleepAvg < 7) items.push({ic: '😴', t: `Sommeil moyen : ${kgf(sleepAvg)} h`, d: 'Vise 8 h : couche-toi 30 min plus tôt et coupe les écrans avant. C\'est la nuit que le muscle se reconstruit.'});
-  const tired = (energies.length >= 3 && enAvg <= 2.5) || soreHigh >= 3 || down.length >= 2;
-  const nx = progNext(), lightW = nx ? nx[0] : null, isLight = lightW != null && (P.light || {})[lightW];
-  if (tired) items.push({ic: '🔋', t: 'Fatigue élevée cette semaine', d: `${energies.length ? `Énergie moyenne ${kgf(enAvg)}/5. ` : ''}${soreHigh ? `Fortes courbatures ${soreHigh} jour(s). ` : ''}Une semaine allégée (une série de moins, −10 %) te fera repartir plus fort.`,
-    act: isLight ? null : 'rlight', btn: `Alléger la semaine ${lightW + 1}`});
-  const ch = chargesItem(tired); if (ch) items.unshift(ch);
-
-  // 4. Douleurs (champ douleur + note)
-  const upcoming = nx ? PROG_DAYS.flatMap((_, d) => progSession(nx[0], d).exercises.map(e => e.name)) : [];
-  for (const [re, part, exs] of PAIN_MAP) {
-    const hit = js.find(j => re.test(j.pain || '') || (/mal|douleur|bless/i.test(j.note || '') && re.test(j.note || '')));
-    if (!hit) continue;
-    const concerned = exs.filter(x => upcoming.includes(x));
-    items.push({ic: '🩹', t: `Douleur : ${part}`, d: `${esc(quote(hit.pain || hit.note, hit.day))}. ${concerned.length ? `À surveiller : ${esc(concerned.map(short).join(', '))}. ` : ''}Si ça fait plus que 3/10 pendant l'exercice, baisse de 20 % ou prends la version maison de la fiche. Si ça dure plus de 2 semaines, gonfle ou te réveille la nuit : médecin ou kiné.`});
-  }
-  // 5. Ce que tu as écrit
-  const sign = k => js.find(j => NOTE_SIGNS[k].test(j.note || ''));
-  const say = {fatigue: 'Tu notes de la fatigue : sommeil et repas complets d\'abord, avant de forcer.',
-    sommeil: 'Tu notes un sommeil difficile : même heure de coucher, pas de café après 14 h.',
-    repas: 'Tu notes des repas manqués : prépare les boîtes du dimanche et du mercredi, et garde un shake lait + flocons d\'avoine en secours.',
-    stress: 'Tu notes du stress : marche 10 min après le déjeuner, et garde la séance même plus courte, c\'est la régularité qui compte.',
-    facile: 'Tu trouves ça facile : si toutes tes reps passent, le bilan monte la charge (voir « Charges »).',
-    dur: 'Tu trouves ça dur : garde la charge et vise une technique propre ; le bilan baisse de 2 kg si plusieurs séries sont ratées.'};
-  for (const k of Object.keys(NOTE_SIGNS)) { const j = sign(k); if (j) items.push({ic: '✍️', t: esc(quote(j.note, j.day)), d: say[k]}); }
-
-  // 6. Régularité
-  const cardMin = Math.round(cardio.reduce((a, h) => a + (h.dur || 0), 0) / 60);
-  if (cardio.length < 2) items.push({ic: '🏃', t: `Cardio : ${cardio.length} fois cette semaine (${cardMin} min)`, d: 'Le plan prévoit 2 fois 25 min (marche rapide en côte, vélo ou course). Ajoute-les avec « 🏃 Activité déjà faite ».'});
-  if (js.length < 4) items.push({ic: '📝', t: `Journal rempli ${js.length} jour(s) sur 7`, d: 'Au moins 4 jours sur 7 pour un bilan fiable.'});
-
-  REVIEW = {adj: newAdj, reviewed};
-  return {items, tiles: [
-    ['Séances', `${progS.length} / ${Math.max(planned, progS.length)}`], ['Cardio', `${cardMin} min`],
-    ['Poids', dW == null ? (wNow.length ? kgf(avg(wNow)) + ' kg' : '—') : `${dW >= 0 ? '+' : ''}${kgf(dW, 2)} kg`],
-    ['Sommeil', sleeps.length ? kgf(sleepAvg) + ' h' : '—'], ['Énergie', energies.length ? kgf(enAvg) + '/5' : '—'], ['Journal', `${js.length} / 7 j`]]};
-}
-function reviewItem(it) {
-  return `<div class="rvi"><span class="ic" aria-hidden="true">${it.ic}</span><div><b>${it.t}</b><span class="small">${it.d}</span>
-    ${it.act ? `<div><button class="btn primary" data-act="${it.act}" data-v="${it.v ?? ''}">${esc(it.btn)}</button></div>` : ''}</div></div>`;
-}
-function reviewHtml(compact) {
-  const R = weekReview(), items = compact ? R.items.filter(i => i.act).concat(R.items.filter(i => !i.act)).slice(0, 2) : R.items;
-  return `${compact ? '' : `<div class="stats rvt">${R.tiles.map(([k, v]) => `<div class="stat"><span class="small">${k}</span><b>${v}</b></div>`).join('')}</div>`}
-    <div class="rv">${items.map(reviewItem).join('') || '<p class="small muted">Rien à régler pour l\'instant.</p>'}</div>
-    ${!compact && S.kcalAdj ? `<p class="small muted">Calories du plan réglées par le bilan : ${S.kcalAdj > 0 ? '+' : ''}${S.kcalAdj} kcal par jour.</p>` : ''}`;
-}
-function reviewHome() {
-  return `<h2>Bilan de la semaine</h2>${reviewHtml(true)}<button class="btn ghost" data-go="plan" style="margin-top:6px">Voir tout le bilan et le journal →</button>`;
-}
-function reviewApply(act, v) {
-  const P = progState();
-  if (act === 'radj' && REVIEW) {
-    P.adj = {...(P.adj || {}), ...REVIEW.adj}; P.reviewed = P.reviewed || {};
-    for (const id of REVIEW.reviewed) P.reviewed[id] = true;
-    toast('Charges mises à jour pour les prochaines séances');
-  }
-  if (act === 'rkcal') { S.kcalAdj = (S.kcalAdj || 0) + +v; S.kcalAt = isoDay(new Date()); toast(`Calories : ${(2550 + S.kcalAdj).toLocaleString('fr-FR')} kcal par jour`); }
-  if (act === 'rlight') { const nx = progNext(); if (nx) { P.light = {...(P.light || {}), [nx[0]]: true}; toast(`Semaine ${nx[0] + 1} allégée`); } }
-  save(); render();
 }
 
 // Étapes pas à pas : adaptées en français d'ExerciseDB v1 via hasaneyldrm/exercises-dataset (https://github.com/hasaneyldrm/exercises-dataset),
@@ -3160,6 +3141,7 @@ const STEPS = {
   'Curl marteau (haltère)': ['Debout, un haltère dans chaque main, paumes tournées vers toi.', 'Coudes collés au buste, plie les bras en gardant les paumes face à face.', 'Monte jusqu\'à hauteur d\'épaule et serre un court instant.', 'Redescends lentement jusqu\'à bras tendus.'],
   'Extension triceps (haltère)': ['Assis ou debout, dos droit, un haltère tenu à deux mains au-dessus de la tête.', 'Haut des bras près des oreilles, plie les coudes et descends l\'haltère derrière la tête.', 'Marque un temps, puis tends les bras pour remonter.'],
   'Pompes lestées': ['Poids (sac à dos) sur le haut du dos, mains un peu plus écartées que les épaules.', 'Ventre gainé, corps bien droit de la tête aux pieds.', 'Plie les coudes et descends jusqu\'à frôler le sol avec la poitrine.', 'Repousse jusqu\'à bras tendus.'],
+  'Pompes pieds surélevés (haltères)': ['Pose deux haltères au sol, poignées parallèles, un peu plus écartés que les épaules.', 'Pieds sur le canapé ou une chaise, mains sur les poignées, sac lesté sur le haut du dos.', 'Ventre gainé, corps droit des talons à la tête.', 'Descends la poitrine entre les haltères, plus bas que tes mains.', 'Repousse jusqu\'aux bras tendus.'],
   'Oiseau / Y-raise (haltère)': ['Debout, un haltère dans chaque main, genoux un peu fléchis.', 'Penche le buste en avant en pliant les hanches, dos plat, bras pendants.', 'Coudes légèrement fléchis, écarte les bras sur les côtés en serrant les omoplates.', 'Marque un temps en haut, puis redescends lentement.'],
   'Squat bulgare (haltère)': ['Dos à un banc ou une chaise, un haltère dans chaque main.', 'Pose le dessus du pied arrière sur le banc ; le pied avant est un grand pas devant.', 'Descends en pliant le genou et la hanche avant, jusqu\'à ce que la cuisse avant soit à peu près parallèle au sol.', 'Pousse sur le pied avant pour remonter. Fais toutes tes reps, puis change de jambe.'],
   'Soulevé de terre roumain (haltère)': ['Debout, pieds largeur de hanches, un haltère dans chaque main devant les cuisses.', 'Dos plat, ventre gainé, genoux légèrement fléchis.', 'Pousse les fesses en arrière et descends les haltères le long des jambes jusqu\'à sentir l\'étirement des ischios.', 'Serre les fessiers et remonte en ramenant les hanches vers l\'avant.'],
@@ -3184,6 +3166,7 @@ const POSTURE = {
   'Curl marteau (haltère)': 'Debout, paumes face à face, coudes collés',
   'Extension triceps (haltère)': 'Haltère au-dessus de la tête, coudes vers le plafond',
   'Pompes lestées': 'Mains sous les épaules, corps gainé en planche',
+  'Pompes pieds surélevés (haltères)': 'Pieds surélevés, mains sur les haltères, corps gainé en planche',
   'Oiseau / Y-raise (haltère)': 'Buste penché, dos plat, bras pendants',
   'Squat bulgare (haltère)': 'Pied arrière sur le banc, buste droit, poids sur le pied avant',
   'Soulevé de terre roumain (haltère)': 'Debout, dos plat, genoux un peu pliés, haltères contre les cuisses',
@@ -3335,12 +3318,12 @@ const FICHES = {
     debat: 'Le dos très cambré des powerlifters (Delavier, p. 64) raccourcit le trajet pour soulever plus lourd. C\'est utile en compétition, pas pour ton but : garde seulement la petite cambrure naturelle. Faut-il ajouter des demi-reps tout en bas ? Helms (3e éd.) explique que sur les développés, le passage le plus dur est déjà en bas, là où le pectoral est étiré : ces demi-reps n\'apportent probablement rien. Garde l\'amplitude complète.',
     src: [src('delavier', 'p. 76 et 64'), src('nsca', 'p. 951'), src('contreras', 'p. 44 (angle des coudes)'), src('fleck', 'p. 25 (arrêter la série)'), src('helms3', 'p. 191'), src('schoenfeld', 'p. 194'), src('nsca', 'p. 994 (poignet neutre)')]},
   'Floor press (haltère)': {lvl: 2,
-    why: 'C\'est la version « sans banc » du développé couché, pour la maison. Même muscles, trajet plus court.',
+    why: 'C\'est le développé couché sans banc : tu n\'en as ni chez toi ni à la salle. Mêmes muscles, trajet plus court.',
     meca: 'Le sol arrête les coudes avant que l\'épaule ne parte loin en arrière, ce qui épargne l\'avant de l\'épaule. Delavier propose une idée proche (coudes le long du corps) pour continuer à pousser quand l\'épaule est sensible. Starrett le propose d\'ailleurs à ceux qui manquent d\'amplitude à l\'épaule pour bien descendre au banc.',
-    cues: ['Genoux pliés, pieds à plat', 'Pose les coudes au sol 1 s sans relâcher, puis pousse', 'Coudes à 45°, pas en croix'],
+    cues: ['Poignets droits, pas cassés vers l\'arrière : l\'haltère au-dessus de l\'avant-bras', 'Genoux pliés, pieds à plat', 'Pose les coudes au sol 1 s sans relâcher, puis pousse', 'Coudes à 45°, pas en croix', 'Pour te mettre en place : assis, haltères sur les cuisses, roule sur le dos en les gardant contre toi'],
     err: ['Laisser tomber les coudes au sol', 'Pousser en cambrant'],
     home: 'L\'amplitude étant réduite, vise 2 reps de plus que prévu ou une descente en 3 s.',
-    debat: 'On perd l\'étirement du bas du mouvement (voir le principe « Amplitude »). C\'est pourquoi à la salle tu reprends le banc. Ne compare pas tes charges au floor press et au banc : Israetel note que certains sont bien plus forts à une variante qu\'à une autre (la force est en partie propre à chaque exercice).',
+    debat: 'On perd l\'étirement du bas du mouvement (voir le principe « Amplitude »). Les pompes pieds surélevés du Haut B descendent plus bas que les mains et rendent cet étirement. Ne compare pas tes charges au floor press et au banc : Israetel note que certains sont bien plus forts à une variante qu\'à une autre (la force est en partie propre à chaque exercice).',
     src: [src('delavier', 'p. 37'), src('rp', 'tension en étirement'), src('starrett', 'ch. 16'), src('rpforce', 'p. 37')]},
   'Rowing penché avec haltères': {lvl: 3,
     why: 'Un dos épais équilibre toute la poussée, garde les épaules en place et compense les heures assis.',
@@ -3468,7 +3451,7 @@ const FICHES = {
     cues: ['Haltère posé sur la hanche de la jambe d\'appui, tenu d\'une main', 'Bassin à plat : les deux hanches montent ensemble', 'Monte jusqu\'en haut, tibia vertical, serre 1 à 2 s', 'Menton rentré, côtes basses', 'Jambe libre pliée et levée', 'Toutes les reps d\'une jambe, puis l\'autre'],
     err: ['Couper la montée quand ça devient dur', 'Bassin qui tourne vers la jambe levée', 'Finir en cambrant : c\'est le bas du dos qui travaille'],
     home: 'Même exercice chez toi et à la salle : haut du dos sur le canapé calé contre un mur (ou sur le banc), un seul haltère. Trop dur au début : sans haltère, ou le talon de la jambe libre posé devant en appui léger.',
-    debat: 'Contreras le classe « intermédiaire » : il demande beaucoup de force pour tendre la hanche et de stabilité du bassin. Il note que beaucoup coupent l\'amplitude quand ça devient dur. Il conseille ce genre d\'exercice sur une jambe à tout le monde, à côté du squat bulgare. Le kg du programme est un repère estimé (tu n\'as jamais fait cette version) : le bilan l\'ajustera après les premières séances.',
+    debat: 'Contreras le classe « intermédiaire » : il demande beaucoup de force pour tendre la hanche et de stabilité du bassin. Il note que beaucoup coupent l\'amplitude quand ça devient dur. Il conseille ce genre d\'exercice sur une jambe à tout le monde, à côté du squat bulgare. Le kg du programme est un repère estimé (tu n\'as jamais fait cette version) : ajuste-le après tes premières séances.',
     src: [src('contreras', 'p. 188 (éd. papier)'), src('contreras', 'ch. 10 (programmes : exercices sur une jambe)'), src('glutelab', 'chapitres sur le hip thrust')]},
   'Leg curl glissé': {lvl: 2,
     why: 'Il fait plier le genou contre une résistance, ce que le soulevé de terre roumain ne fait pas. Delavier note que les déchirures des ischios sont particulièrement fréquentes en musculation.',
@@ -3510,6 +3493,14 @@ const FICHES = {
     home: 'Lest : un sac à dos rempli de livres ou de bouteilles. Poignet fragile : pompes sur deux haltères, chez toi comme à la salle (des haltères hexagonaux ne roulent pas). Plus de lest si ça devient facile, pas de retour aux mains à plat.',
     debat: 'Pompes ou développé ? Si l\'effort est le même (proche de l\'échec), les deux construisent du muscle (principe « Plage de reps »). Le lest sert juste à rester sous 30 reps. McGill a mesuré une charge importante sur le bas du dos pendant les pompes : certaines personnes avec un dos douloureux les supportent mal, d\'autres s\'en trouvent soulagées. Si une pompe réveille une douleur de dos, ce n\'est pas dans ta tête. Le poignet : mains à plat, il est plié vers l\'arrière presque à fond et porte une grosse part de ton poids. Starrett attribue les douleurs de poignet à une main cassée vers l\'arrière (il parle des charges tenues au-dessus de la tête), et pour les pompes il demande les coudes à l\'aplomb des poignets. Sur des haltères, le poignet reste droit : même exercice, sans la position qui fait mal. Une sensation de « décrochage » n\'est pas une courbature : Neumann rappelle que le poignet côté petit doigt est tenu par un ensemble de ligaments (le TFCC), et que s\'il se relâche, l\'articulation devient instable et douloureuse. Fais-le examiner par un médecin du sport ou un kiné.',
     src: [src('contreras', 'p. 44 (éd. papier)'), src('delavier', 'p. 75'), src('starrett', 'le couple de rotation'), src('mcgilllbd', 'p. 281-284'), src('starrett', 'ch. 16 (poignets)'), src('neumann', 'p. 211 (TFCC)')]},
+  'Pompes pieds surélevés (haltères)': {lvl: 3,
+    why: 'Le remplaçant du développé incliné sans banc. Les pieds en hauteur placent le corps comme pour un développé incliné : le haut des pectoraux travaille davantage, et tu pousses une plus grosse part de ton poids.',
+    meca: 'Pectoraux (surtout le haut), avant des épaules et triceps. Les haltères au sol te laissent descendre la poitrine plus bas que les mains : le pectoral est étiré en bas, ce que le développé au sol ne fait pas.',
+    cues: ['Mains sur deux haltères posés au sol, poignées parallèles : poignet droit dans l\'axe de l\'avant-bras', 'Pieds sur le canapé ou une chaise', 'Fesses et abdos serrés : corps droit des talons à la tête', 'Descends la poitrine entre les haltères', 'Ne lève pas la tête en bas du mouvement', 'Coudes à l\'aplomb des poignets'],
+    err: ['Hanches qui s\'affaissent', 'Regarder devant toi en bas : le cou se casse vers l\'arrière', 'Amplitude coupée', 'Mains à plat au sol : le poignet est cassé vers l\'arrière sous ton poids'],
+    home: 'Même exercice chez toi et à la salle : un canapé, une chaise ou une marche pour les pieds, deux haltères hexagonaux (ils ne roulent pas). Lest : un sac à dos rempli de livres ou de bouteilles. Trop dur au début : pieds moins hauts, ou sans lest.',
+    debat: 'Contreras classe cette pompe parmi les variantes avancées : elle met plus de poids sur les mains et change l\'angle pour ressembler à un développé incliné, avec plus de travail du haut des pectoraux. Il demande de descendre profond, sans lever la tête. Il la place après la pompe classique dans la progression. Le poignet reste droit sur les haltères : même raison que pour les pompes lestées (Starrett). Le kg du programme est un repère estimé : ajuste-le après tes premières séances.',
+    src: [src('contreras', 'p. 49 (éd. papier)'), src('contreras', 'ch. 10 (progressions)'), src('starrett', 'ch. 16 (poignets)')]},
   'Oiseau / Y-raise (haltère)': {lvl: 2,
     why: 'Il travaille l\'arrière des épaules, les trapèzes moyens et bas et les rhomboïdes : la posture, et des épaules saines quand on passe la journée assis.',
     meca: 'Buste penché, dos plat, bras levés jusqu\'à l\'horizontale. En resserrant les omoplates à la fin, on recrute les trapèzes, le rhomboïde, le petit rond et l\'infra-épineux.',
@@ -3711,7 +3702,6 @@ function lxAll() {
     const dn = D.name.replace('du corps ', '');
     for (const x of D.ex) { add(x[0], dn, x, x[4]); if (x[5]) add(x[5][0], 'Remplaçants', [x[5][0], x[5][1], x[5][2], 0], x[4]); }
   }
-  add('Floor press (haltère)', 'Remplaçants', null, false);
   lxCache = [...m.values()];
   for (const o of lxCache) o.txt = norm([o.name, ...o.p.concat(o.s).map(k => MUSCLE_NAMES[k]), o.e, ...o.g, ...o.days].join(' '));
   return lxCache;
@@ -3923,7 +3913,7 @@ function vPlan() {
 
   return `<p class="kicker">Ton plan · objectif +1 kg par mois</p><h1>Mon plan</h1>
   <div class="stats">
-    <div class="stat"><span class="small">Calories / jour</span><b>${(2550 + (S.kcalAdj || 0)).toLocaleString('fr-FR')}</b>${S.kcalAdj ? `<span class="small">dont ${S.kcalAdj > 0 ? '+' : ''}${S.kcalAdj} (bilan)</span>` : ''}</div>
+    <div class="stat"><span class="small">Calories / jour</span><b>${(2550 + (S.kcalAdj || 0)).toLocaleString('fr-FR')}</b>${S.kcalAdj ? `<span class="small">dont ${S.kcalAdj > 0 ? '+' : ''}${S.kcalAdj} (ajustement)</span>` : ''}</div>
     <div class="stat"><span class="small">Protéines</span><b>≈ 155 g</b></div>
     <div class="stat"><span class="small">Glucides · lipides</span><b>330 · 70 g</b></div>
     <div class="stat"><span class="small">Poids visé</span><b>+0,25 kg</b><span class="small">par semaine</span></div>
@@ -3936,7 +3926,6 @@ function vPlan() {
     <li><span class="n">⏸ Écran</span><span class="muted">toutes les heures assis : 2 min debout ou 10 squats</span></li>
   </ul></div>
 
-  <h2 id="bilan">Bilan des 7 derniers jours</h2>${reviewHtml(false)}
   <h2>Journal de bord</h2>${journalList()}
   <h2>Mon poids</h2>
   <div class="card">
@@ -4169,16 +4158,22 @@ function dayPage(day) {
     ${f.length ? `<div class="jgrid">${f.map(([k, v]) => `<div class="stat"><span class="small">${k}</span><b>${esc(v)}</b></div>`).join('')}</div>` : ''}
     ${J && J.note ? `<blockquote class="jnote">${esc(J.note)}</blockquote>` : ''}
     ${!f.length && !(J && J.note) ? '<p class="small muted" style="margin:8px 0 0">Rien noté ce jour-là.</p>' : ''}</div>`;
+  // repas du jour (notés d'office depuis S.foodAuto)
+  const fs = foodSum(foodDay(day)), tg = FOOD_T();
+  h += `<div class="card"><div class="row"><div style="flex:1;min-width:160px"><div class="exname">🍽 Repas</div>
+      <div class="muted small">${foodDay(day).length ? `${Math.round(fs.k).toLocaleString('fr-FR')} / ${tg.k.toLocaleString('fr-FR')} kcal · ${Math.round(fs.p)} / ${tg.p} g de protéines · ${foodDay(day).length} entrée${foodDay(day).length > 1 ? 's' : ''}` : 'Rien noté ce jour-là.'}</div></div>
+      <button class="btn" data-act="dayfood" data-day="${day}">Voir ou modifier</button></div></div>`;
   // séances et activités du jour, détaillées
-  h += `<h2>Séances et activités</h2>` + (sess.length ? sess.map(x => `<div class="card"><div class="exname">${esc(x.title)} ${x.src === 'hevy' ? '<span class="tag">Hevy</span>' : ''}</div>
+  const rested = !!(S.rest || {})[day];
+  h += `<h2>Séances et activités</h2>` + (rested ? `<div class="card"><div class="row"><div style="flex:1">😴 <b>Repos noté</b></div><button class="btn ghost" data-act="restday" data-day="${day}">Annuler</button></div></div>` : '') + (sess.length ?sess.map(x => `<div class="card"><div class="exname">${esc(x.title)} ${x.src === 'hevy' ? '<span class="tag">Hevy</span>' : ''}</div>
       <div class="muted small">${esc(new Date(x.date).toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'}))} · ${fmtDur(x.dur)}${volume(x) ? ' · ' + Math.round(volume(x)).toLocaleString('fr-FR') + ' kg soulevés' : ''}</div>
       ${x.note ? `<p class="small" style="margin:6px 0 0">${esc(x.note)}</p>` : ''}
       <div class="hdet">${x.ex.map(e => `<div><b>${esc(e.name)}</b> <span class="muted">— ${e.sets.map(y => esc(fmtSet(y))).join(' · ')}</span></div>`).join('')}</div></div>`).join('')
-    : `<div class="card"><p class="small muted" style="margin:0">Aucune séance ce jour-là.</p><div class="row" style="margin-top:8px"><button class="btn" data-act="actadd">🏃 Ajouter une activité</button></div></div>`);
+    : `<div class="card"><p class="small muted" style="margin:0">Aucune séance ce jour-là.</p><div class="row" style="margin-top:8px"><button class="btn" data-act="actadd">🏃 Ajouter une activité</button>${rested ? '' : `<button class="btn" data-act="restday" data-day="${day}">😴 Noter un repos</button>`}</div></div>`);
   // les 14 derniers jours, pour naviguer
   const rows = Array.from({length: 14}, (_, i) => dayShift(today, -i)).map(d => {
     const n = allSessions().filter(x => isoDay(new Date(x.date)) === d), jj = (S.journal || {})[d];
-    const icons = [n.some(x => x.kind !== 'cardio') ? '🏋️' : '', n.some(x => x.kind === 'cardio') ? '🏃' : '', jj ? '📝' : '', W[d] != null ? `⚖️ ${kgf(W[d])}` : ''].filter(Boolean).join(' ');
+    const icons = [n.some(x => x.kind !== 'cardio') ? '🏋️' : '', n.some(x => x.kind === 'cardio') ? '🏃' : '', (S.rest || {})[d] ? '😴' : '', jj ? '📝' : '', W[d] != null ? `⚖️ ${kgf(W[d])}` : ''].filter(Boolean).join(' ');
     return `<button type="button" class="dayrow ${d === day ? 'on' : ''}" data-act="dayopen" data-day="${d}"><span>${esc(fmtDate(new Date(d + 'T12:00'), {weekday: 'short', day: 'numeric', month: 'short'}))}</span><span class="muted">${icons || '—'}</span></button>`;
   }).join('');
   return h + `<h2>Les 14 derniers jours</h2><div class="card daylist">${rows}</div>`;
@@ -4266,7 +4261,6 @@ document.addEventListener('click', ev => {
     case 'jopen': return journalForm(d.day);
     case 'jpick': return journalPick(d.k, d.v);
     case 'jsave': return journalSave();
-    case 'radj': case 'rkcal': case 'rlight': return reviewApply(d.act, d.v);
     case 'pip': return pipToggle();
     case 'stper': ST.per = d.v; ST.off = 0; return render();
     case 'stmet': ST.metric = d.v; return render();
@@ -4289,6 +4283,17 @@ document.addEventListener('click', ev => {
       if (pn) return startProg(pn.join('-'));
       toast('Poids enregistré'); return render(); }
     case 'hwweek': HW += +d.v; return render();
+    case 'mopen': MV = 0; return monthSheet();
+    case 'mvmove': MV = Math.min(0, MV + +d.v); return monthSheet();
+    case 'mvday': closeModal(); HV.mode = 'day'; HV.day = d.day; return go('history');
+    case 'cdpick': return cardioPick();
+    case 'cdstart': S.cardioLive = {kind: CARDIO_KINDS[+d.i], start: Date.now()}; if (S.rest) delete S.rest[isoDay(new Date())]; save(); closeModal(); go('home'); return toast('Chrono lancé : bon cardio !');
+    case 'cdstop': return cardioStop();
+    case 'cdcancel': return confirmBox('Annuler ce cardio sans l\'enregistrer ?', () => { S.cardioLive = null; save(); render(); }, 'Oui, annuler');
+    case 'restday': { S.rest = S.rest || {}; if (S.rest[d.day]) delete S.rest[d.day]; else S.rest[d.day] = true; save(); return render(); }
+    case 'dayfood': FV.tab = 'log'; FV.day = d.day; return go('food');
+    case 'reston': S.rest = {...(S.rest || {}), [isoDay(new Date())]: true}; save(); render(); return toast('Repos noté');
+    case 'restoff': if (S.rest) delete S.rest[isoDay(new Date())]; save(); return render();
     case 'pvtab': PV = d.v; return render();
     case 'pwweek': PW += +d.v; return render();
     case 'pwopen': return pwOpen(d.key);
@@ -4308,8 +4313,11 @@ document.addEventListener('click', ev => {
     case 'fasave': { const p = FA.pick; if (!p || !(+p.g > 0)) return toast('Entre une quantité en grammes');
       const t = foodTot(p.per, p.g); return foodSave({n: p.n, g: +p.g, k: t.k, p: t.p, c: t.c, f: t.f, per: p.per, src: p.src}); }
     case 'fabar': return offLookup(($('#fabar') || {}).value);
-    case 'faplan': { const m = MEALS[+d.i], tot = MEALS.reduce((a, x) => a + x.k, 0);
-      return foodSave({n: m.name, g: 0, k: m.k, p: m.p, c: Math.round(330 * m.k / tot), f: Math.round(70 * m.k / tot), src: 'plan'}); }
+    case 'faplan': { const {id, t, ...e} = planEntry(MEALS[+d.i], FV.day || isoDay(new Date())); return foodSave(e); }
+    case 'feplan': { const x = foodDay(d.day).find(e => e.id === d.id), v = id => parseFloat(String(($(id) || {}).value || '').replace(',', '.'));
+      const k = v('#fek'), p = v('#fep'); if (!x || !(k >= 0) || !(p >= 0)) return toast('Entre les calories et les protéines');
+      const r = x.k ? k / x.k : 0; Object.assign(x, {k, p, c: Math.round(x.c * r), f: Math.round(x.f * r), edited: true});
+      save(); closeModal(); render(); return toast('Repas modifié'); }
     case 'famanual': { const v = id => parseFloat(String(($(id) || {}).value || '').replace(',', '.')) || 0, n = (($('#fmn') || {}).value || '').trim();
       if (!n || !v('#fmk')) return toast('Donne au moins un nom et les calories');
       return foodSave({n, g: 0, k: v('#fmk'), p: v('#fmp'), c: v('#fmc'), f: v('#fmf'), src: 'manuel'}); }
